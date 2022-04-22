@@ -32,10 +32,20 @@ export default {
 </template>
 
 <style>
+html, body, #app {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+}
 body {
   margin: 0;
   background: #EAEFF6;
   font-family: 'Roboto', sans-serif;
+}
+.input {
+  margin-bottom: 10px;
 }
 input[type="text"], input[type="password"] {
   width: 100%;
@@ -47,7 +57,6 @@ input[type="text"], input[type="password"] {
   padding: 7px;
   font-size: 16px;
   color: #333;
-  margin-bottom: 10px;
 }
 button {
   border: 1px solid #EFEFEF;
@@ -65,5 +74,23 @@ button {
 }
 button:hover {
   box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
+}
+.h1 {
+  font-size: 20px;
+  font-weight: bold;
+}
+.h2 {
+  font-size: 16px;
+  font-weight: bold;
+}
+.material-icons, .material-symbols-outlined {
+  user-select: none;
+  cursor: pointer;
+}
+.material-icons:hover, .material-symbols-outlined:hover {
+  opacity: 0.5;
+}
+.not-button {
+  pointer-events: none;
 }
 </style>

@@ -17,7 +17,8 @@ window.setCookie = (key, value) => {
 export const useMainStore = defineStore({
   id: 'main',
   state: () => ({
-    loggedIn: false
+    loggedIn: false,
+    input: ''
   }),
   getters: {
     doubleCount: (state) => state.counter * 2
@@ -80,6 +81,9 @@ export const useMainStore = defineStore({
     logout() {
       setCookie('token', '');
       this.loggedIn = false;
+    },
+    async sendMessage(message) {
+      console.log(`Sending message: ${message}`);
     }
   }
 })

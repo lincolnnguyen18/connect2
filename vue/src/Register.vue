@@ -63,7 +63,6 @@ export default {
 
 <style scoped>
 html, body, #app {
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
