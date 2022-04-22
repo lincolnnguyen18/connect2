@@ -1,28 +1,34 @@
+<script setup>
+import { RouterLink, RouterView } from 'vue-router'
+</script>
 <script>
-import Login from './Login.vue'
-import Register from './Register.vue'
+// import { RouterLink, RouterView } from 'vue-router'
+// import Login from './Login.vue'
+// import Register from './Register.vue'
 import { useMainStore } from './store'
 export default {
   setup() {
     const store = useMainStore()
     return { store }
   },
-  components: {
-    Login,
-    Register
-  },
+  // components: {
+  //   Login,
+  //   Register
+  // },
   data () {
     return {
     }
   },
   methods: {
-  }
+  },
+  mounted () {
+    console.log('App mounted')
+  },
 }
 </script>
 
 <template>
-<Login v-if="store.page == 'login'" />
-<Register v-if="store.page == 'register'" />
+<RouterView />
 </template>
 
 <style>

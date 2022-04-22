@@ -31,7 +31,7 @@ export default {
   <div class="bottom">
     <span>
       <div>Don't have an account?</div>
-      <div class="link">Register</div>
+      <router-link class="link" to="/register">Register</router-link>
     </span>
     <button @click="login">Login</button>
   </div>
@@ -89,6 +89,7 @@ button:hover {
   font-weight: bold;
   text-decoration: underline;
   cursor: pointer;
+  color: black;
 }
 .box {
   background: white;
