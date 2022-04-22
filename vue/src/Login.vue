@@ -12,6 +12,14 @@ export default {
     }
   },
   methods: {
+    login: async function () {
+      try {
+        await this.store.login(this.username, this.password)
+        this.$router.replace('/')
+      } catch (err) {
+        alert(err)
+      }
+    }
   }
 }
 </script>
@@ -38,47 +46,13 @@ export default {
 </div>
 </template>
 
-<style>
-body {
-  margin: 0;
-  background: #EAEFF6;
-  font-family: 'Roboto', sans-serif;
-}
+<style scoped>
 html, body, #app {
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-input[type="text"], input[type="password"] {
-  width: 100%;
-  border: 1px solid #EFEFEF;
-  box-sizing: border-box;
-  box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 7px;
-  background: #fff;
-  padding: 7px;
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 10px;
-}
-button {
-  border: 1px solid #EFEFEF;
-  box-sizing: border-box;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 7px;
-  background: #FDFDFD;
-  padding: 7px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  cursor: pointer;
-  user-select: none;
-}
-button:hover {
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
 }
 .bottom {
   display: flex;

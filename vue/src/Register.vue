@@ -13,6 +13,25 @@ export default {
     }
   },
   methods: {
+    register: async function () {
+      if (this.password !== this.confirmPassword) {
+        alert('Passwords do not match')
+        return
+      } else if (this.username.length < 3) {
+        alert('Username must be at least 3 characters')
+        return
+      } else if (this.password.length < 3) {
+        alert('Password must be at least 3 characters')
+        return
+      } else {
+        try {
+          await this.store.register(this.username, this.password)
+          this.$router.replace('/')
+        } catch (err) {
+          alert(err)
+        }
+      }
+    }
   }
 }
 </script>
@@ -30,7 +49,7 @@ export default {
     </div>
     <div class="input">
       <div>Confirm Password</div>
-      <input type="password" v-model="confirmPassword" />
+      <input type="password" v-model="confirmPassword" @keyup.enter="register" />
     </div>
   </div>
   <div class="bottom">
@@ -42,47 +61,13 @@ export default {
 </div>
 </template>
 
-<style>
-body {
-  margin: 0;
-  background: #EAEFF6;
-  font-family: 'Roboto', sans-serif;
-}
+<style scoped>
 html, body, #app {
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-input[type="text"], input[type="password"] {
-  width: 100%;
-  border: 1px solid #EFEFEF;
-  box-sizing: border-box;
-  box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 7px;
-  background: #fff;
-  padding: 7px;
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 10px;
-}
-button {
-  border: 1px solid #EFEFEF;
-  box-sizing: border-box;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 7px;
-  background: #FDFDFD;
-  padding: 7px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  cursor: pointer;
-  user-select: none;
-}
-button:hover {
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.25);
 }
 .bottom {
   display: flex;
