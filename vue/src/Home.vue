@@ -25,40 +25,40 @@ export default {
 <div class="right">
   <InputBar />
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
   <div class="left-bubble-wrapper">
-    <Chat align="left" />
+    <Chat side="left" />
   </div>
   <div class="right-bubble-wrapper">
-    <Chat align="right" />
+    <Chat side="right" />
   </div>
 </div>
 </template>
@@ -85,7 +85,7 @@ export default {
   margin-top: 32px;
 }
 .right > div:last-child {
-  margin-bottom: 200px;
+  margin-bottom: 100px;
 }
 .left-bubble-wrapper, .right-bubble-wrapper {
   width: 100%;

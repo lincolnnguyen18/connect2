@@ -84,6 +84,9 @@ export const useMainStore = defineStore({
     },
     async sendMessage(message) {
       console.log(`Sending message: ${message}`);
+    },
+    async findFriends() {
+      console.log('Finding friends');
     }
   }
 })

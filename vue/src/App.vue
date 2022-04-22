@@ -83,11 +83,11 @@ button:hover {
   font-size: 16px;
   font-weight: bold;
 }
-.material-icons, .material-symbols-outlined {
+.material-icons, .material-symbols-outlined, .material-icons-round {
   user-select: none;
   cursor: pointer;
 }
-.material-icons:hover, .material-symbols-outlined:hover {
+.material-icons:hover, .material-symbols-outlined:hover, .material-icons-round:hover {
   opacity: 0.5;
 }
 .not-button {

@@ -33,13 +33,10 @@ export default {
 </template>
 
 <style>
-:root {
-  --align: {{ align }};
-}
 .bubble-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: var(--align);
+  align-items: v-bind('align');
   gap: 12px;
   max-width: 400px;
 }

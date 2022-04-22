@@ -7,21 +7,37 @@ export default {
   },
   data () {
     return {
+      normalView: true,
+      findFriendsView: false,
+      search: '',
     }
   },
   methods: {
+    switchView(view) {
+      this.normalView = view === 'normal'
+      this.findFriendsView = view === 'findFriends'
+    },
+    doSearch() {
+      this.store.findFriends(this.search)
+    },
   }
 }
 </script>
 
 <template>
 <div class="friends">
-  <div class="top">
+  <div class="top" v-if="normalView">
     <div class="left">
       <span class="h1">Friends</span>
-      <span class="material-icons">add</span>
+      <span class="material-icons" @click="switchView('findFriends')">add</span>
     </div>
     <span class="material-icons">chevron_left</span>
+  </div>
+  <div class="top" v-if="findFriendsView">
+    <div class="left">
+      <input type="text" v-model="search" @keyup.enter="doSearch" placeholder="Enter username" />
+    </div>
+    <span class="material-icons-round" @click="switchView('normal')">close</span>
   </div>
   <div class="middle">
     <div class="friend">
@@ -58,10 +74,14 @@ export default {
   max-height: 700px;
   padding: 16px;
 }
+input {
+  width: 220px;
+}
 .top {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 50px;
 }
 .top .left {
   display: flex;
