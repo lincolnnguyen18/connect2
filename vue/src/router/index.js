@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useMainStore } from '../store'
+import Home from '../Home.vue'
+import Register from '../Register.vue'
+import Login from '../Login.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,19 +10,22 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('../Home.vue'),
+      // component: () => import('../Home.vue'),
+      component: Home,
       meta: { requiresAuth: true }
     },
     {
       path: '/register',
       name: 'register',
-      component: () => import('../Register.vue'),
+      // component: () => import('../Register.vue'),
+      component: Register,
       meta: { requiresNoAuth: true }
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../Login.vue'),
+      // component: () => import('../Login.vue'),
+      component: Login,
       meta: { requiresNoAuth: true }
     },
     {
@@ -31,8 +37,10 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const store = useMainStore()
+  window.store = store
   await store.checkIfLoggedIn()
   if (to.matched.some(record => record.meta.requiresAuth)) {
+    console.log('test')
     if (!store.loggedIn) {
       next({ name: 'login' })
     } else {

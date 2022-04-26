@@ -18,7 +18,8 @@ export const useMainStore = defineStore({
   id: 'main',
   state: () => ({
     loggedIn: false,
-    input: ''
+    input: '',
+    user: null
   }),
   getters: {
     doubleCount: (state) => state.counter * 2
@@ -38,28 +39,30 @@ export const useMainStore = defineStore({
             console.log(res);
             throw new Error(res.error);
           } else {
-            console.log(`Setting token: ${res.token}`);
-            setCookie('token', res.token);
+            // console.log(`Setting token: ${res.token}`);
+            // setCookie('token', res.token);
           }
         });
     },
     async checkIfLoggedIn() {
-      await fetch('http://localhost:3003/api/is-loggedin', {
+      await fetch('/api/is-loggedin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token: getCookie('token') })
+        }
       })
         .then(res => res.json())
         .then(res => {
-          if (res.id) {
+          if (res.user) {
             this.loggedIn = true;
-            this.id = res.id;
+            this.user = res.user;
           }
         });
     },
     async login(username, password) {
+      if (!username || !password) {
+        return;
+      }
       await fetch('http://localhost:3003/api/login', {
         method: 'POST',
         headers: {
@@ -73,20 +76,27 @@ export const useMainStore = defineStore({
             console.log(res);
             throw new Error(res.error);
           } else {
-            console.log(`Setting token: ${res.token}`);
-            setCookie('token', res.token);
+            // console.log(`Setting token: ${res.token}`);
+            // setCookie('token', res.token);
           }
         });
     },
     logout() {
       setCookie('token', '');
       this.loggedIn = false;
+      this.user = null;
     },
     async sendMessage(message) {
       console.log(`Sending message: ${message}`);
     },
-    async findFriends() {
-      console.log('Finding friends');
+    async findFriends(username) {
+      if (username) {
+        return await fetch(`http://localhost:3003/api/get-users?username=${encodeURIComponent(username)}`)
+          .then(res => res.json())
+          .then(res => {
+            return res;
+          });
+      }
     }
   }
 })

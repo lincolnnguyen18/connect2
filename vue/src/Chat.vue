@@ -15,7 +15,11 @@ export default {
     side: {
       type: String,
       required: true
-    }
+    },
+    text: {
+      type: String,
+      required: true
+    },
   },
   computed: {
     align() {
@@ -27,7 +31,7 @@ export default {
 
 <template>
 <div class="bubble-wrapper">
-  <div class="bubble">Test test test Test test testTest test testTest test testTest test testTest test test</div>
+  <div class="bubble">{{ text }}</div>
   <div class="date">7:27 PM · April 21, 2022</div>
 </div>
 </template>
@@ -45,6 +49,10 @@ export default {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 16px;
   padding: 16px;
-  text-align: justify;
+  /* text-align: justify; */
+}
+.date {
+  font-size: 12px;
+  color: #8e8e8e;
 }
 </style>

@@ -32,6 +32,9 @@ export default {
         }
       }
     }
+  },
+  mounted() {
+    this.$refs.username.select()
   }
 }
 </script>
@@ -41,11 +44,11 @@ export default {
   <div class="top">
     <div class="input">
       <div>Username</div>
-      <input type="text" v-model="username" />
+      <input type="text" v-model="username" ref="username" @keyup.enter="register" />
     </div>
     <div class="input">
       <div>Password</div>
-      <input type="password" v-model="password" />
+      <input type="password" v-model="password" @keyup.enter="register" />
     </div>
     <div class="input">
       <div>Confirm Password</div>
@@ -60,6 +63,12 @@ export default {
   </div>
 </div>
 </template>
+
+<style>
+#app {
+  align-items: center;
+}
+</style>
 
 <style scoped>
 html, body, #app {

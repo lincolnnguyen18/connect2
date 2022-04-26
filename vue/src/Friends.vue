@@ -10,16 +10,33 @@ export default {
       normalView: true,
       findFriendsView: false,
       search: '',
+      lastSearch: '',
+      findFriendsUsers: [],
     }
   },
   methods: {
     switchView(view) {
       this.normalView = view === 'normal'
       this.findFriendsView = view === 'findFriends'
+      if (view === 'findFriends') {
+        setTimeout(() => {
+          this.$refs.search.select()
+        }, 1)
+      } else {
+        this.search = ''
+        this.lastSearch = ''
+      }
     },
-    doSearch() {
-      this.store.findFriends(this.search)
+    doSearch: async function () {
+      let users = await this.store.findFriends(this.search)
+      this.lastSearch = this.search
+      console.log(users)
+      this.findFriendsUsers = users
     },
+    logout() {
+      this.store.logout()
+      this.$router.replace('/login')
+    }
   }
 }
 </script>
@@ -35,11 +52,11 @@ export default {
   </div>
   <div class="top" v-if="findFriendsView">
     <div class="left">
-      <input type="text" v-model="search" @keyup.enter="doSearch" placeholder="Enter username" />
+      <input type="text" v-model="search" @keyup.enter="doSearch" placeholder="Enter username" ref="search" />
     </div>
     <span class="material-icons-round" @click="switchView('normal')">close</span>
   </div>
-  <div class="middle">
+  <div class="middle" v-if="normalView">
     <div class="friend">
       <span>Lincoln</span>
       <span class="material-icons">menu</span>
@@ -49,15 +66,23 @@ export default {
       <span class="material-icons">menu</span>
     </div>
   </div>
-  <div class="bottom">
-    <div class="left">
-      <div class="h2">Microphone language</div>
-      <div class="languages">
-        <span>English</span>
-        <span class="material-icons not-button">arrow_drop_down</span>
-      </div>
+  <div class="middle" v-if="findFriendsView">
+    <span class="search" v-if="lastSearch">Searching for "{{lastSearch}}"</span>
+    <div class="friend" v-for="user in findFriendsUsers" v-if="lastSearch">
+      <span>{{ user.username }}</span>
+      <span class="material-icons">person_add</span>
     </div>
-    <span class="material-icons">logout</span>
+  </div>
+  <div class="languages-wrapper">
+    <div class="h2">Microphone language</div>
+    <div class="languages">
+      <span>English</span>
+      <span class="material-icons not-button">arrow_drop_down</span>
+    </div>
+  </div>
+  <div class="logout-wrapper">
+    <span>Logged in as <b>{{ store.user.username }}</b></span>
+    <span class="material-icons" @click="logout">logout</span>
   </div>
 </div>
 </template>
@@ -92,6 +117,8 @@ input {
   height: 100%;
   margin: 12px 0;
   /* background: red; */
+  display: flex;
+  flex-direction: column;
 }
 .friend {
   display: flex;
@@ -100,19 +127,25 @@ input {
   border-bottom: 1px solid #efefef;
   padding: 6px 0;
 }
-.bottom {
+.logout-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.bottom .left {
+.languages-wrapper {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  margin-bottom: 12px;
 }
 .languages {
   display: flex;
   align-items: center;
   cursor: pointer;
+}
+.search {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 3px;
 }
 </style>

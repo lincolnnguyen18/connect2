@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 (async () => {
   const conn = await mysql2.createConnection({
@@ -29,51 +30,62 @@ import cors from 'cors';
   const validToken = async (token) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(`Decoded id: ${decoded.id}`);
-      let [rows, fields] = await conn.query('SELECT * FROM users WHERE id = ?', [decoded.id]);
+      let [rows, fields] = await conn.query('SELECT id, username FROM users WHERE id = ?', [decoded.id]);
       if (rows.length === 0) {
         return null
       }
-      return decoded.id;
+      return rows[0];
     } catch (err) {
-      console.log(`Error validating token: ${err}`);
       return null
     }
   };
 
   const isLoggedIn = async (req, res, next) => {
     const token = req.cookies.token;
-    if (await validToken(token)) {
+    let user = await validToken(token);
+    if (user) {
+      req.user = user;
       next();
     } else {
       res.redirect('/login');
     }
   };
 
+  const isNotLoggedIn = async (req, res, next) => {
+    const token = req.cookies.token;
+    if (await validToken(token)) {
+      res.redirect('/');
+    } else {
+      next();
+    }
+  };
+
   const router = express.Router();
 
   router.post('/is-loggedin', async (req, res) => {
-    const { token } = req.body;
-    let id = await validToken(token);
-    console.log({ id, token });
-    res.send({ id });
+    const token = req.cookies.token;
+    let user = await validToken(token);
+    res.send({ user });
   });
 
-  router.post('/register', async (req, res) => {
+  router.post('/register', isNotLoggedIn, async (req, res) => {
     const { username, password } = req.body;
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
     try {
       const [rows, fields] = await conn.query('CALL register_user(?, ?, @id); select @id', [username, hash]);
-      let token = jwt.sign({ id: rows[1][0]['@id'] }, process.env.JWT_SECRET);
-      res.send({ token });
+      let id = rows[1][0]['@id'];
+      let token = jwt.sign({ id: id }, process.env.JWT_SECRET);
+      // res.send({ token });
+      res.cookie('token', token);
+      res.json({});
     } catch (err) {
       console.log(err);
-      res.send({ error: 'Username already exists' });
+      res.json({ error: 'Username already exists' });
     }
   });
 
-  router.post('/login', async (req, res) => {
+  router.post('/login', isNotLoggedIn, async (req, res) => {
     const { username, password } = req.body;
     try {
       const [rows, fields] = await conn.query('SELECT id, password FROM users WHERE username = ?', [username]);
@@ -84,7 +96,8 @@ import cors from 'cors';
         const valid = await bcrypt.compare(password, user.password);
         if (valid) {
           let token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-          res.send({ token });
+          res.cookie('token', token);
+          res.json({});
         } else {
           res.send({ error: 'Invalid password' });
         }
@@ -95,12 +108,25 @@ import cors from 'cors';
     }
   });
 
+  router.get('/get-users', isLoggedIn, async (req, res) => {
+    let { username } = req.query;
+    console.log(`${req.user.id} search for ${username}`);
+    try {
+      const [rows, fields] = await conn.query('CALL get_users_to_friend(?, ?)' , [req.user.id, username]);
+      res.send(rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Invalid password' });
+    }
+  });
 
   app.use('/api', router);
 
-  app.get('*', (req, res) => {
-    res.sendFile('index.html', { root: '../vue/dist' });
-  });
+  // app.get('*', (req, res) => {
+  //   res.sendFile('index.html', { root: '../vue/dist' });
+  // });
+
+  app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
 
   const port = 3003;
   app.listen(port, () => console.log(`Listening on port ${port}`));
