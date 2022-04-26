@@ -28,6 +28,14 @@ const router = createRouter({
       component: Login,
       meta: { requiresNoAuth: true }
     },
+    // get path for /messages/:id
+    {
+      path: '/messages/:username',
+      name: 'messages',
+      // component: () => import('../Messages.vue'),
+      component: Home,
+      meta: { requiresAuth: true }
+    },
     {
       path: '/:pathMatch(.*)*',
       redirect: '/'
@@ -37,10 +45,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const store = useMainStore()
-  window.store = store
+  // window.store = store
   await store.checkIfLoggedIn()
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    console.log('test')
     if (!store.loggedIn) {
       next({ name: 'login' })
     } else {

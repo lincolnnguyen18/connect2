@@ -9,15 +9,19 @@ export default {
     return {
       normalView: true,
       findFriendsView: false,
+      settingsView: false,
       search: '',
       lastSearch: '',
       findFriendsUsers: [],
+      requests: []
     }
   },
   methods: {
     switchView(view) {
+      console.log('switchView', view)
       this.normalView = view === 'normal'
       this.findFriendsView = view === 'findFriends'
+      this.settingsView = view === 'settings'
       if (view === 'findFriends') {
         setTimeout(() => {
           this.$refs.search.select()
@@ -36,7 +40,27 @@ export default {
     logout() {
       this.store.logout()
       this.$router.replace('/login')
+    },
+    sendFriendRequest: async function(username) {
+      try {
+        await this.store.sendFriendRequest(username)
+        this.switchView('normal')
+      } catch (err) {
+        alert(err)
+      }
+    },
+    getFriendRequests: async function() {
+      try {
+        let requests = await this.store.getFriendRequests()
+        console.log(requests)
+        this.requests = requests
+      } catch (err) {
+        alert(err)
+      }
     }
+  },
+  mounted() {
+    this.getFriendRequests()
   }
 }
 </script>
@@ -48,7 +72,15 @@ export default {
       <span class="h1">Friends</span>
       <span class="material-icons" @click="switchView('findFriends')">add</span>
     </div>
-    <span class="material-icons">chevron_left</span>
+    <!-- <span class="material-icons">chevron_left</span> -->
+    <span class="material-icons" @click="switchView('settings')">settings</span>
+  </div>
+  <div class="top" v-if="settingsView">
+    <div class="left">
+      <span class="h1">Settings</span>
+      <!-- <span class="material-icons">chevron_left</span> -->
+    </div>
+    <span class="material-icons-round" @click="switchView('normal')">close</span>
   </div>
   <div class="top" v-if="findFriendsView">
     <div class="left">
@@ -56,32 +88,33 @@ export default {
     </div>
     <span class="material-icons-round" @click="switchView('normal')">close</span>
   </div>
-  <div class="middle" v-if="normalView">
-    <div class="friend">
-      <span>Lincoln</span>
-      <span class="material-icons">menu</span>
+  <div class="middle settings-middle" v-if="settingsView">
+    <div class="languages-wrapper">
+      <div class="h2">Microphone language</div>
+      <div class="languages">
+        <span>English</span>
+        <span class="material-icons not-button">arrow_drop_down</span>
+      </div>
     </div>
-    <div class="friend">
-      <span>Maimi</span>
-      <span class="material-icons">menu</span>
+  </div>
+  <div class="middle" v-if="normalView">
+    <div class="friend normal-friend" v-for="request in requests" @click="this.$emit('open-messages', request.username)">
+      <span>{{ request.username }}</span>
+      <span v-if="!request.accepted_at && request.direction === 'recipient'" class="material-icons-round not-button">priority_high</span>
+      <span v-if="!request.accepted_at && request.direction === 'requester'" class="material-icons not-button">schedule</span>
+      <span v-if="request.accepted_at" class="material-icons">menu</span>
+      <div class="divider"></div>
     </div>
   </div>
   <div class="middle" v-if="findFriendsView">
     <span class="search" v-if="lastSearch">Searching for "{{lastSearch}}"</span>
     <div class="friend" v-for="user in findFriendsUsers" v-if="lastSearch">
       <span>{{ user.username }}</span>
-      <span class="material-icons">person_add</span>
-    </div>
-  </div>
-  <div class="languages-wrapper">
-    <div class="h2">Microphone language</div>
-    <div class="languages">
-      <span>English</span>
-      <span class="material-icons not-button">arrow_drop_down</span>
+      <span class="material-icons" @click="sendFriendRequest(user.username)">person_add</span>
     </div>
   </div>
   <div class="logout-wrapper">
-    <span>Logged in as <b>{{ store.user.username }}</b></span>
+    <span v-if="store.user">Logged in as <b>{{ store.user.username }}</b></span>
     <span class="material-icons" @click="logout">logout</span>
   </div>
 </div>
@@ -97,16 +130,19 @@ export default {
   border-radius: 16px;
   height: 90%;
   max-height: 700px;
-  padding: 16px;
+  /* padding: 16px; */
 }
 input {
-  width: 220px;
+  width: 200px;
+  padding-top: 8px;
 }
 .top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   height: 50px;
+  padding: 0 16px;
+  padding-top: 16px;
 }
 .top .left {
   display: flex;
@@ -124,13 +160,31 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #efefef;
-  padding: 6px 0;
+  /* border-bottom: 1px solid #efefef; */
+  padding: 6px 16px;
+  position: relative;
+}
+.divider {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  margin: 0 auto;
+  background: #efefef;
+  height: 1px;
+  left: 0;
+}
+.normal-friend {
+  cursor: pointer;
+}
+.normal-friend:hover {
+  background: #f5f5f5;
 }
 .logout-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 16px;
+  padding-bottom: 16px;
 }
 .languages-wrapper {
   display: flex;
@@ -146,6 +200,10 @@ input {
 .search {
   font-size: 14px;
   font-weight: bold;
+  margin: 0 16px;
   margin-bottom: 3px;
+}
+.settings-middle {
+  padding: 0 16px;
 }
 </style>

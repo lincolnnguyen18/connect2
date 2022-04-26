@@ -19,14 +19,15 @@ export const useMainStore = defineStore({
   state: () => ({
     loggedIn: false,
     input: '',
-    user: null
+    user: null,
+    messagesOpenFor: null
   }),
   getters: {
     doubleCount: (state) => state.counter * 2
   },
   actions: {
     async register(username, password) {
-      await fetch('http://localhost:3003/api/register', {
+      await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -63,7 +64,7 @@ export const useMainStore = defineStore({
       if (!username || !password) {
         return;
       }
-      await fetch('http://localhost:3003/api/login', {
+      await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -91,12 +92,35 @@ export const useMainStore = defineStore({
     },
     async findFriends(username) {
       if (username) {
-        return await fetch(`http://localhost:3003/api/get-users?username=${encodeURIComponent(username)}`)
+        return await fetch(`/api/get-users?username=${encodeURIComponent(username)}`)
           .then(res => res.json())
           .then(res => {
             return res;
           });
       }
+    },
+    async sendFriendRequest(username) {
+      await fetch(`/api/send-friend-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+    },
+    async getFriendRequests() {
+      return await fetch(`/api/get-friend-requests`)
+        .then(res => res.json())
+        .then(res => {
+          return res;
+        });
     }
   }
 })

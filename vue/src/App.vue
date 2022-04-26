@@ -15,15 +15,14 @@ export default {
   //   Login,
   //   Register
   // },
-  data () {
-    return {
-    }
-  },
-  methods: {
-  },
-  mounted () {
-    console.log('App mounted')
-  },
+  // data () {
+  //   return {
+  //   }
+  // },
+  // methods: {
+  // },
+  // mounted () {
+  // },
 }
 </script>
 

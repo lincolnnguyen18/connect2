@@ -21,7 +21,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
   app.use(cors());
-  app.use(express.static('../vue/dist'));
+  // app.use(express.static('../vue/dist'));
 
   const ping = () => { conn.query('SELECT 1'); }
 
@@ -120,6 +120,29 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
     }
   });
 
+  router.post('/send-friend-request', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    try {
+      await conn.query('CALL send_friend_request(?, ?)' , [req.user.id, username]);
+      await conn.query(`CALL send_message(?, ?, ?)`, [req.user.username, username, `Friend request received from ${req.user.username}`]);
+      await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request sent to ${req.user.username}`]);
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error sending friend request' });
+    }
+  });
+
+  router.get('/get-friend-requests', isLoggedIn, async (req, res) => {
+    try {
+      const [rows, fields] = await conn.query('CALL get_friend_requests(?)' , [req.user.id]);
+      res.send(rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error getting friend requests' });
+    }
+  });
+
   app.use('/api', router);
 
   // app.get('*', (req, res) => {
@@ -128,7 +151,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 
   app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
 
-  const port = 3003;
+  const port = 3001;
   app.listen(port, () => console.log(`Listening on port ${port}`));
 
 })();
