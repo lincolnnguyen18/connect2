@@ -6,6 +6,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { Server } from 'socket.io';
+import http from 'http';
+import { createClient } from 'redis';
 
 (async () => {
   const conn = await mysql2.createConnection({
@@ -15,6 +18,28 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
     database: 'connect_app',
     multipleStatements: true
   });
+
+  const clients = {};
+  const publisher = createClient();
+  publisher.on('error', (err) => console.log('Redis Client Error', err));
+  await publisher.connect();
+  const subscriber = createClient();
+  subscriber.on('error', (err) => console.log('Redis Client Error', err));
+  await subscriber.connect();
+  await subscriber.subscribe('main', async (message) => {
+    // console.log('Message received: ', message);
+    const { type } = JSON.parse(message);
+    switch (type) {
+      case 'friend-request':
+        const { to } = JSON.parse(message);
+        clients[to] && clients[to].emit('friend-request', message);
+        break;
+    }
+  });
+
+  // setTimeout(() => {
+  //   publisher.publish('main', 'Hello from the publisher');
+  // }, 3000);
 
   const app = express();
   app.use(express.json());
@@ -110,7 +135,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 
   router.get('/get-users', isLoggedIn, async (req, res) => {
     let { username } = req.query;
-    console.log(`${req.user.id} search for ${username}`);
+    // console.log(`${req.user.id} search for ${username}`);
     try {
       const [rows, fields] = await conn.query('CALL get_users_to_friend(?, ?)' , [req.user.id, username]);
       res.send(rows[0]);
@@ -125,7 +150,11 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
     try {
       await conn.query('CALL send_friend_request(?, ?)' , [req.user.id, username]);
       await conn.query(`CALL send_message(?, ?, ?)`, [req.user.username, username, `Friend request received from ${req.user.username}`]);
-      await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request sent to ${req.user.username}`]);
+      // await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request sent to ${req.user.username}`]);
+      publisher.publish('main', JSON.stringify({
+        type: 'friend-request',
+        to: username
+      }));
       res.send({});
     } catch (err) {
       console.log(err);
@@ -143,15 +172,45 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
     }
   });
 
+  router.get('/get-messages', isLoggedIn, async (req, res) => {
+    const { username, limit } = req.query;
+    try {
+      const [rows, fields] = await conn.query('CALL get_messages(?, ?, ?)' , [req.user.id, username, limit]);
+      res.send(rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error getting messages' });
+    }
+  });
+
   app.use('/api', router);
 
   // app.get('*', (req, res) => {
   //   res.sendFile('index.html', { root: '../vue/dist' });
   // });
 
+  // app.use('/wss', createProxyMiddleware({ target: 'http://localhost:8002' }));
   app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
 
+  // setup app with socket.io
   const port = 3001;
-  app.listen(port, () => console.log(`Listening on port ${port}`));
-
+  const server = http.createServer(app);
+  const io = new Server(server);
+  io.on('connection', (socket) => {
+    socket.on('login', async (token) => {
+      const user = await validToken(token);
+      if (user) {
+        console.log(`${user.username} connected`);
+        clients[user.username] = socket;
+        socket.username = user.username;
+      } else {
+        socket.disconnect();
+      }
+    });
+    socket.on('disconnect', () => {
+      console.log(`${socket.username} disconnected`);
+      delete clients[socket.username];
+    });
+  });
+  server.listen(port, () => console.log(`Listening on port ${port}`));
 })();

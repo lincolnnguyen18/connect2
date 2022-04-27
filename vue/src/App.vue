@@ -1,10 +1,4 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-</script>
 <script>
-// import { RouterLink, RouterView } from 'vue-router'
-// import Login from './Login.vue'
-// import Register from './Register.vue'
 import { useMainStore } from './store'
 export default {
   setup() {
@@ -21,8 +15,14 @@ export default {
   // },
   // methods: {
   // },
-  // mounted () {
-  // },
+  mounted () {
+    console.log(this.store.socket)
+    this.store.socket = io();
+    this.store.socket.on('connect', () => {
+      console.log('connected')
+      this.store.socket.emit('login', getCookie('token'))
+    })
+  },
 }
 </script>
 

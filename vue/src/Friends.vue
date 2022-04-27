@@ -44,6 +44,7 @@ export default {
     sendFriendRequest: async function(username) {
       try {
         await this.store.sendFriendRequest(username)
+        this.requests = await this.store.getFriendRequests()
         this.switchView('normal')
       } catch (err) {
         alert(err)
@@ -61,6 +62,12 @@ export default {
   },
   mounted() {
     this.getFriendRequests()
+  },
+  created() {
+    this.store.socket.on('friend-request', () => {
+      console.log('friend-request')
+      this.getFriendRequests()
+    })
   }
 }
 </script>

@@ -9,25 +9,31 @@ export default {
     const store = useMainStore()
     return { store }
   },
-  // data () {
-  //   return {
-  //   }
-  // },
+  data () {
+    return {
+      messages: []
+    }
+  },
   methods: {
-    openMessages(username) {
+    openMessages: async function(username) {
       console.log(`Opening messages for ${username}`)
       this.$router.push({ name: 'messages', params: { username } })
+      this.messages = await this.store.getMessages(username)
     },
   },
-  mounted () {
+  mounted: async function() {
     // scroll right to bottom
     this.$refs.right.scrollTop = this.$refs.right.scrollHeight
     const { username } = this.$route.params
     this.store.messagesOpenFor = username
+    // this.store.getMessages(username).then(messages => {
+    //   this.messages = messages
+    // })
+    this.messages = await this.store.getMessages(username)
   },
   watch: {
     '$route' (to, from) {
-      console.log(`Route changed from ${from.name} to ${to.name}`)
+      // console.log(`Route changed from ${from.name} to ${to.name}`)
       console.log(this.$route.params)
       const { username } = this.$route.params
       this.store.messagesOpenFor = username

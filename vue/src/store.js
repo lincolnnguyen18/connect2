@@ -20,7 +20,8 @@ export const useMainStore = defineStore({
     loggedIn: false,
     input: '',
     user: null,
-    messagesOpenFor: null
+    messagesOpenFor: null,
+    socket: null
   }),
   getters: {
     doubleCount: (state) => state.counter * 2
@@ -121,6 +122,17 @@ export const useMainStore = defineStore({
         .then(res => {
           return res;
         });
-    }
+    },
+    async getMessages(username) {
+      if (username) {
+        let limit = Math.floor(window.innerHeight / 77);
+        return await fetch(`/api/get-messages?username=${encodeURIComponent(username)}&limit=${limit}`)
+          .then(res => res.json())
+          .then(res => {
+            console.log(res)
+            return res;
+          });
+      }
+    },
   }
 })
