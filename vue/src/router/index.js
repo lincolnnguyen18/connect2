@@ -45,23 +45,35 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const store = useMainStore()
-  // window.store = store
+  if (!store.loading)
+    store.startLoading()
+  window.store = store
   await store.checkIfLoggedIn()
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!store.loggedIn) {
+      console.log('a')
       next({ name: 'login' })
     } else {
+      console.log('b')
       next()
     }
   } else if (to.matched.some(record => record.meta.requiresNoAuth)) {
     if (store.loggedIn) {
+      console.log('c')
       next({ name: 'home' })
     } else {
+      console.log('d')
       next()
     }
   } else {
+    console.log('e')
     next()
   }
+})
+
+router.afterEach(() => {
+  const store = useMainStore()
+  store.finishLoading()
 })
 
 export default router

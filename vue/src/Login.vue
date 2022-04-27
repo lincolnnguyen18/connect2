@@ -15,7 +15,7 @@ export default {
     login: async function () {
       try {
         await this.store.login(this.username, this.password)
-        this.$router.replace('/')
+        this.$router.push('/')
       } catch (err) {
         alert(err)
       }

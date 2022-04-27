@@ -16,7 +16,8 @@ import { createClient } from 'redis';
     user: 'admin',
     password: process.env.DB_PASSWORD,
     database: 'connect_app',
-    multipleStatements: true
+    multipleStatements: true,
+    timezone: 'Z'
   });
 
   const clients = {};
@@ -149,7 +150,7 @@ import { createClient } from 'redis';
     const { username } = req.body;
     try {
       await conn.query('CALL send_friend_request(?, ?)' , [req.user.id, username]);
-      await conn.query(`CALL send_message(?, ?, ?)`, [req.user.username, username, `Friend request received from ${req.user.username}`]);
+      await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request received from ${req.user.username}`]);
       // await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request sent to ${req.user.username}`]);
       publisher.publish('main', JSON.stringify({
         type: 'friend-request',
@@ -173,9 +174,11 @@ import { createClient } from 'redis';
   });
 
   router.get('/get-messages', isLoggedIn, async (req, res) => {
-    const { username, limit } = req.query;
+    const { username, limit, offHr, offMin } = req.query;
     try {
-      const [rows, fields] = await conn.query('CALL get_messages(?, ?, ?)' , [req.user.id, username, limit]);
+      const [rows, fields] = await conn.query('CALL get_messages(?, ?, ?, ?, ?)' , [req.user.id, username, limit, offHr, offMin]);
+      console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      console.log(rows[0]);
       res.send(rows[0]);
     } catch (err) {
       console.log(err);
@@ -189,7 +192,6 @@ import { createClient } from 'redis';
   //   res.sendFile('index.html', { root: '../vue/dist' });
   // });
 
-  // app.use('/wss', createProxyMiddleware({ target: 'http://localhost:8002' }));
   app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
 
   // setup app with socket.io

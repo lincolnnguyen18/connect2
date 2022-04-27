@@ -1,5 +1,7 @@
 <script>
 import { useMainStore } from './store'
+// import Loading from './Loading.vue'
+import { debounce } from 'lodash'
 export default {
   setup() {
     const store = useMainStore()
@@ -16,21 +18,56 @@ export default {
   // methods: {
   // },
   mounted () {
-    console.log(this.store.socket)
-    this.store.socket = io();
-    this.store.socket.on('connect', () => {
-      console.log('connected')
-      this.store.socket.emit('login', getCookie('token'))
-    })
+    this.store.finishLoading = debounce(this.store.finishLoadingSub, 400)
   },
+  // components: {
+  //   Loading
+  // },
+  computed: {
+    progessbarWidth() {
+      return `${this.store.loadingProgress}%`
+    }
+  } 
 }
 </script>
 
 <template>
+<div class="progress-bar" v-show="store.loading"></div>
+<div class="loading-screen" v-show="store.loading">
+  <!-- <Loading :width="100" color="black"></Loading> -->
+</div>
+<!-- <div class="progress-bar"></div> -->
 <RouterView />
 </template>
 
 <style>
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  /* background: rgba(255, 255, 255, 0.3); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loading-screen * {
+  user-select: none;
+  pointer-events: none;
+}
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background: rgb(105, 105, 105);
+  z-index: 100;
+  /* width: 100%; */
+  width: v-bind(progessbarWidth);
+  transition: width 0.3s ease-in-out;
+}
 html, body, #app {
   height: 100%;
   width: 100%;

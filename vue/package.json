@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --mode development",
+    "build": "vite build --no-minify",
     "preview": "vite preview --port 5050"
   },
   "dependencies": {
     "add": "^2.0.6",
+    "lodash": "^4.17.21",
     "pinia": "^2.0.13",
     "vue": "^3.2.33",
     "vue-router": "4",

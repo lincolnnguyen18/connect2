@@ -26,7 +26,7 @@ export default {
       } else {
         try {
           await this.store.register(this.username, this.password)
-          this.$router.replace('/')
+          this.$router.push('/')
         } catch (err) {
           alert(err)
         }

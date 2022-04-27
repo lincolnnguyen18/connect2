@@ -62,9 +62,9 @@ CREATE PROCEDURE send_message(_sender_username VARCHAR(255), _recipient_username
   INSERT INTO messages (sender_id, recipient_id, body) VALUES (@sender_id, @recipient_id, _body);
 END //
 
-CREATE PROCEDURE get_messages_offset(_sender_id INT, _recipient_username CHAR(255), _limit INT, _offset INT) BEGIN
+CREATE PROCEDURE get_messages_offset(_sender_id INT, _recipient_username CHAR(255), _limit INT, _offset INT, _timezone_offset_hours INT, _timezone_offset_minutes INT) BEGIN
   SET @recipient_id = (SELECT id FROM users WHERE username = _recipient_username);
-  SELECT messages.body, messages.created_at, IF(messages.sender_id = _sender_id, 'sender', 'recipient') AS direction FROM messages WHERE
+  SELECT messages.body, CONVERT_TZ(messages.created_at,'-5:00', CONCAT(_timezone_offset_hours, ':', _timezone_offset_minutes)) AS created_at, IF(messages.sender_id = _sender_id, 'sender', 'recipient') AS direction FROM messages WHERE
     ((messages.sender_id = _sender_id AND messages.recipient_id = @recipient_id) OR
     (messages.sender_id = @recipient_id AND messages.recipient_id = _sender_id))
     AND messages.id < _offset
@@ -72,9 +72,9 @@ CREATE PROCEDURE get_messages_offset(_sender_id INT, _recipient_username CHAR(25
     LIMIT _limit;
 END //
 
-CREATE PROCEDURE get_messages(_sender_id INT, _recipient_username CHAR(255), _limit INT) BEGIN
+CREATE PROCEDURE get_messages(_sender_id INT, _recipient_username CHAR(255), _limit INT, _timezone_offset_hours INT, _timezone_offset_minutes INT) BEGIN
   SET @recipient_id = (SELECT id FROM users WHERE username = _recipient_username);
-  SELECT messages.body, messages.created_at, IF(messages.sender_id = _sender_id, 'sender', 'recipient') AS direction FROM messages WHERE
+  SELECT messages.body, CONVERT_TZ(messages.created_at,'-5:00', CONCAT(_timezone_offset_hours, ':', _timezone_offset_minutes)) AS created_at, IF(messages.sender_id = _sender_id, 'sender', 'recipient') AS direction FROM messages WHERE
     (messages.sender_id = _sender_id AND messages.recipient_id = @recipient_id) OR
     (messages.sender_id = @recipient_id AND messages.recipient_id = _sender_id)
     ORDER BY messages.id DESC

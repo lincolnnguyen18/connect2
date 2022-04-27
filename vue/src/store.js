@@ -13,6 +13,8 @@ window.getCookie = (key) => {
 window.setCookie = (key, value) => {
   document.cookie = `${key}=${value}`
 }
+window.offHr = -1 * Math.floor(new Date().getTimezoneOffset() / 60);
+window.offMin = new Date().getTimezoneOffset() % 60;
 
 export const useMainStore = defineStore({
   id: 'main',
@@ -21,12 +23,33 @@ export const useMainStore = defineStore({
     input: '',
     user: null,
     messagesOpenFor: null,
-    socket: null
+    socket: null,
+    loading: false,
+    loadingProgress: 50,
+    finishLoading: null
   }),
   getters: {
-    doubleCount: (state) => state.counter * 2
+    doubleCount: (state) => state.counter * 2,
   },
   actions: {
+    startLoading() {
+      if (!this.loading) {
+        this.loadingProgress = 0
+        this.loading = true
+        setTimeout(() => {
+          this.loadingProgress = 70
+        }, 100)
+        console.log(`START LOADING ${this.totalLoading}`)
+      }
+    },
+    finishLoadingSub() {
+      console.log(`FINISH LOADING ${this.totalLoading}`)
+      this.loadingProgress = 100
+      setTimeout(() => {
+        this.loading = false
+        console.log(this.loadingProgress, this.loading)
+      }, 400)
+    },
     async register(username, password) {
       await fetch('/api/register', {
         method: 'POST',
@@ -58,6 +81,11 @@ export const useMainStore = defineStore({
           if (res.user) {
             this.loggedIn = true;
             this.user = res.user;
+            this.socket = io();
+            this.socket.on('connect', () => {
+              console.log('connected')
+              this.socket.emit('login', getCookie('token'))
+            })
           }
         });
     },
@@ -117,18 +145,23 @@ export const useMainStore = defineStore({
         });
     },
     async getFriendRequests() {
+      this.startLoading()
       return await fetch(`/api/get-friend-requests`)
         .then(res => res.json())
         .then(res => {
+          this.finishLoading()
           return res;
         });
     },
     async getMessages(username) {
+      this.startLoading()
       if (username) {
         let limit = Math.floor(window.innerHeight / 77);
-        return await fetch(`/api/get-messages?username=${encodeURIComponent(username)}&limit=${limit}`)
+        // get timezoneOffsetHr and timezoneOffsetMin
+        return await fetch(`/api/get-messages?username=${encodeURIComponent(username)}&limit=${limit}&offHr=${offHr}&offMin=${offMin}`)
           .then(res => res.json())
           .then(res => {
+            this.finishLoading()
             console.log(res)
             return res;
           });

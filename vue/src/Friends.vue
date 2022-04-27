@@ -39,7 +39,11 @@ export default {
     },
     logout() {
       this.store.logout()
-      this.$router.replace('/login')
+      this.$router.push('/login')
+      // console router route
+      console.log(`PATH: ${this.$route.path}`)
+      console.log(this.store.loggedIn, this.store.user)
+
     },
     sendFriendRequest: async function(username) {
       try {
@@ -121,7 +125,7 @@ export default {
     </div>
   </div>
   <div class="logout-wrapper">
-    <span v-if="store.user">Logged in as <b>{{ store.user.username }}</b></span>
+    <span>Logged in as <b>{{ store.user ? store.user.username : '' }}</b></span>
     <span class="material-icons" @click="logout">logout</span>
   </div>
 </div>
