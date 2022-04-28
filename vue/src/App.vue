@@ -17,7 +17,7 @@ export default {
   // },
   // methods: {
   // },
-  mounted () {
+  mounted() {
     this.store.finishLoading = debounce(this.store.finishLoadingSub, 400)
   },
   // components: {
@@ -33,9 +33,9 @@ export default {
 
 <template>
 <div class="progress-bar" v-show="store.loading"></div>
-<div class="loading-screen" v-show="store.loading">
-  <!-- <Loading :width="100" color="black"></Loading> -->
-</div>
+<!-- <div class="loading-screen" v-show="store.loading">
+  <Loading :width="100" color="black"></Loading>
+</div> -->
 <!-- <div class="progress-bar"></div> -->
 <RouterView />
 </template>
@@ -47,8 +47,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 100;
-  /* background: rgba(255, 255, 255, 0.3); */
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,5 +128,13 @@ button:hover {
 }
 .not-button {
   pointer-events: none;
+}
+.invisible {
+  visibility: hidden;
+}
+.disabled {
+  opacity: 0.1;
+  pointer-events: none;
+  user-select: none;
 }
 </style>

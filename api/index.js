@@ -47,7 +47,6 @@ import { createClient } from 'redis';
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
   app.use(cors());
-  // app.use(express.static('../vue/dist'));
 
   const ping = () => { conn.query('SELECT 1'); }
 
@@ -89,12 +88,16 @@ import { createClient } from 'redis';
   const router = express.Router();
 
   router.post('/is-loggedin', async (req, res) => {
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
+    const { token } = req.body;
+    console.log(`Token: ${token}`);
     let user = await validToken(token);
+    console.log(user);
     res.send({ user });
   });
 
   router.post('/register', isNotLoggedIn, async (req, res) => {
+    console.log('/register');
     const { username, password } = req.body;
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
@@ -112,6 +115,7 @@ import { createClient } from 'redis';
   });
 
   router.post('/login', isNotLoggedIn, async (req, res) => {
+    console.log('/login');
     const { username, password } = req.body;
     try {
       const [rows, fields] = await conn.query('SELECT id, password FROM users WHERE username = ?', [username]);
@@ -150,7 +154,7 @@ import { createClient } from 'redis';
     const { username } = req.body;
     try {
       await conn.query('CALL send_friend_request(?, ?)' , [req.user.id, username]);
-      await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request received from ${req.user.username}`]);
+      // await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request received from ${req.user.username}`]);
       // await conn.query(`CALL send_message(?, ?, ?)`, [username, req.user.username, `Friend request sent to ${req.user.username}`]);
       publisher.publish('main', JSON.stringify({
         type: 'friend-request',
@@ -160,6 +164,53 @@ import { createClient } from 'redis';
     } catch (err) {
       console.log(err);
       res.send({ error: 'Error sending friend request' });
+    }
+  });
+
+  router.post('/cancel-friend-request', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    try {
+      await conn.query('CALL cancel_friend_request(?, ?)' , [req.user.username, username]);
+      // console.log(`Calling cancel_friend_request(${req.user.username}, ${username})`);
+      publisher.publish('main', JSON.stringify({
+        type: 'friend-request',
+        to: username
+      }));
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error canceling friend request' });
+    }
+  });
+
+  router.post('/decline-friend-request', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    try {
+      await conn.query('CALL cancel_friend_request(?, ?)' , [username, req.user.username]);
+      publisher.publish('main', JSON.stringify({
+        type: 'friend-request',
+        to: username
+      }));
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error declining friend request' });
+    }
+  });
+
+  router.post('/accept-friend-request', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    try {
+      await conn.query('CALL accept_friend_request(?, ?)' , [req.user.id, username]);
+      console.log(`Calling accept_friend_request(${req.user.id}, ${username})`);
+      publisher.publish('main', JSON.stringify({
+        type: 'friend-request',
+        to: username
+      }));
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error declining friend request' });
     }
   });
 
@@ -177,8 +228,8 @@ import { createClient } from 'redis';
     const { username, limit, offHr, offMin } = req.query;
     try {
       const [rows, fields] = await conn.query('CALL get_messages(?, ?, ?, ?, ?)' , [req.user.id, username, limit, offHr, offMin]);
-      console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
-      console.log(rows[0]);
+      // console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      // console.log(rows[0]);
       res.send(rows[0]);
     } catch (err) {
       console.log(err);
@@ -188,6 +239,7 @@ import { createClient } from 'redis';
 
   app.use('/api', router);
 
+  // app.use(express.static('../vue/dist'));
   // app.get('*', (req, res) => {
   //   res.sendFile('index.html', { root: '../vue/dist' });
   // });
@@ -215,4 +267,8 @@ import { createClient } from 'redis';
     });
   });
   server.listen(port, () => console.log(`Listening on port ${port}`));
+
+  setInterval(() => {
+    console.log(Object.keys(clients));
+  }, 1000);
 })();

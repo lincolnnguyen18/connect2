@@ -1,10 +1,11 @@
-import { defineStore } from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
+import router from './router'
 
 window.getCookie = (key) => {
   let cookie = document.cookie.split('; ')
   for (let i = 0; i < cookie.length; i++) {
     let arr = cookie[i].split('=')
-    if (arr[0] === key) {
+    if (arr[0] === key && arr[1]) {
       return arr[1]
     }
   }
@@ -12,6 +13,10 @@ window.getCookie = (key) => {
 }
 window.setCookie = (key, value) => {
   document.cookie = `${key}=${value}`
+}
+window.eraseCookie = (name) => {
+  // document.cookie = name + '=; Max-Age=0'
+  document.cookie="token='';path=/"
 }
 window.offHr = -1 * Math.floor(new Date().getTimezoneOffset() / 60);
 window.offMin = new Date().getTimezoneOffset() % 60;
@@ -26,10 +31,15 @@ export const useMainStore = defineStore({
     socket: null,
     loading: false,
     loadingProgress: 50,
-    finishLoading: null
+    finishLoading: null,
+    requests: []
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,
+    messagesOpenForRequest: (state) => {
+      // get request with username matching messagesOpenFor
+      return state.requests.find(r => r.username === state.messagesOpenFor)
+    }
   },
   actions: {
     startLoading() {
@@ -48,7 +58,7 @@ export const useMainStore = defineStore({
       setTimeout(() => {
         this.loading = false
         console.log(this.loadingProgress, this.loading)
-      }, 400)
+      }, 600)
     },
     async register(username, password) {
       await fetch('/api/register', {
@@ -74,7 +84,8 @@ export const useMainStore = defineStore({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ token: getCookie('token') })
       })
         .then(res => res.json())
         .then(res => {
@@ -85,6 +96,11 @@ export const useMainStore = defineStore({
             this.socket.on('connect', () => {
               console.log('connected')
               this.socket.emit('login', getCookie('token'))
+              this.socket.on('friend-request', async () => {
+                console.log('friend-request')
+                await this.getFriendRequests()
+                if (!this.messagesOpenForRequest) router.push('/')
+              })
             })
           }
         });
@@ -112,9 +128,11 @@ export const useMainStore = defineStore({
         });
     },
     logout() {
-      setCookie('token', '');
+      // setCookie('token', '');
+      eraseCookie('token');
       this.loggedIn = false;
       this.user = null;
+      this.socket.disconnect();
     },
     async sendMessage(message) {
       console.log(`Sending message: ${message}`);
@@ -144,17 +162,73 @@ export const useMainStore = defineStore({
           }
         });
     },
+    async cancelFriendRequest() {
+      await fetch(`/api/cancel-friend-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: this.messagesOpenForRequest.username })
+      })
+        .then(res => res.json())
+        .then(res => {
+          this.getFriendRequests()
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+    },
+    async declineFriendRequest() {
+      await fetch(`/api/decline-friend-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: this.messagesOpenForRequest.username })
+      })
+        .then(res => res.json())
+        .then(res => {
+          this.getFriendRequests()
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+    },
+    async acceptFriendRequest() {
+      await fetch(`/api/accept-friend-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: this.messagesOpenForRequest.username })
+      })
+        .then(res => res.json())
+        .then(res => {
+          this.getFriendRequests()
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+    },
     async getFriendRequests() {
       this.startLoading()
-      return await fetch(`/api/get-friend-requests`)
+      await fetch(`/api/get-friend-requests`)
         .then(res => res.json())
         .then(res => {
           this.finishLoading()
-          return res;
+          this.requests = res;
+          if (!this.messagesOpenForRequest) this.messagesOpenFor = null;
         });
     },
     async getMessages(username) {
       this.startLoading()
+      // if username not in this.requests, throw error
+      if (!this.requests.find(r => r.username === username)) {
+        throw new Error('User not found');
+      }
       if (username) {
         let limit = Math.floor(window.innerHeight / 77);
         // get timezoneOffsetHr and timezoneOffsetMin
@@ -162,7 +236,9 @@ export const useMainStore = defineStore({
           .then(res => res.json())
           .then(res => {
             this.finishLoading()
-            console.log(res)
+            this.messagesOpenFor = username;
+            if (res.length == 0) console.log('NO MESSAGES', res);
+            else console.log('MESSAGES', res);
             return res;
           });
       }

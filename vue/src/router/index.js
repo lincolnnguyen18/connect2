@@ -45,8 +45,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const store = useMainStore()
-  if (!store.loading)
-    store.startLoading()
+  store.startLoading()
   window.store = store
   await store.checkIfLoggedIn()
   if (to.matched.some(record => record.meta.requiresAuth)) {

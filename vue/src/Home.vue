@@ -3,8 +3,9 @@ import { useMainStore } from './store'
 import Friends from './Friends.vue'
 import Chat from './Chat.vue'
 import InputBar from './InputBar.vue'
+import WaitingAccept from './WaitingAccept.vue'
 export default {
-  components: { Friends, Chat, InputBar },
+  components: { Friends, Chat, InputBar, WaitingAccept },
   setup() {
     const store = useMainStore()
     return { store }
@@ -15,21 +16,31 @@ export default {
     }
   },
   methods: {
-    openMessages: async function(username) {
-      console.log(`Opening messages for ${username}`)
-      this.$router.push({ name: 'messages', params: { username } })
-      this.messages = await this.store.getMessages(username)
+    openMessages: async function(request) {
+      console.log('Opening messages for', request)
+      this.$router.push({ name: 'messages', params: { username: request.username } })
+      this.messages = await this.store.getMessages(request.username)
     },
   },
   mounted: async function() {
     // scroll right to bottom
     this.$refs.right.scrollTop = this.$refs.right.scrollHeight
+    await this.store.getFriendRequests()
     const { username } = this.$route.params
-    this.store.messagesOpenFor = username
-    // this.store.getMessages(username).then(messages => {
-    //   this.messages = messages
-    // })
-    this.messages = await this.store.getMessages(username)
+    if (username) {
+      this.store.messagesOpenFor = username
+      // this.store.getMessages(username).then(messages => {
+      //   this.messages = messages
+      // })
+      try {
+        this.messages = await this.store.getMessages(username)
+      } catch (err) {
+        console.log(err)
+        this.$router.push('/')
+      }
+    }
+    // console.log(this.messages)
+    // if (!this.messages || this.messages.length === 0) this.$router.push('/')
   },
   watch: {
     '$route' (to, from) {
@@ -37,6 +48,11 @@ export default {
       // console.log(this.$route.params)
       const { username } = this.$route.params
       this.store.messagesOpenFor = username
+    }
+  },
+  computed: {
+    waitingEnabled() {
+      return this.store.messagesOpenForRequest && !this.store.messagesOpenForRequest.accepted_at
     }
   }
 }
@@ -55,6 +71,7 @@ export default {
     <Chat side="right" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." />
   </div> -->
   <Chat :message="message" v-for="message in messages" />
+  <WaitingAccept v-if="waitingEnabled" />
 </div>
 </template>
 
@@ -84,8 +101,10 @@ export default {
   margin-top: 32px;
 }
 .right > div:last-child {
-  margin-bottom: 100px;
+  margin-bottom: 40px;
 }
+</style>
+<style>
 .left-bubble-wrapper, .right-bubble-wrapper {
   width: 100%;
   /* background: pink; */
@@ -97,7 +116,22 @@ export default {
 .right-bubble-wrapper {
   justify-content: flex-end;
 }
-.invisible {
-  visibility: hidden;
+.bubble-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: v-bind('align');
+  gap: 12px;
+  max-width: 400px;
+}
+.bubble {
+  background: white;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 16px;
+  /* text-align: justify; */
+}
+.date {
+  font-size: 12px;
+  color: #8e8e8e;
 }
 </style>

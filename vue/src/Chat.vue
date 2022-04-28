@@ -43,23 +43,8 @@ export default {
 </div>
 </template>
 
-<style>
+<style scoped>
 .bubble-wrapper {
-  display: flex;
-  flex-direction: column;
   align-items: v-bind('align');
-  gap: 12px;
-  max-width: 400px;
-}
-.bubble {
-  background: white;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 16px;
-  padding: 16px;
-  /* text-align: justify; */
-}
-.date {
-  font-size: 12px;
-  color: #8e8e8e;
 }
 </style>

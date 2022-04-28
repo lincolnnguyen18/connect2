@@ -13,7 +13,7 @@ export default {
       search: '',
       lastSearch: '',
       findFriendsUsers: [],
-      requests: []
+      username: ''
     }
   },
   methods: {
@@ -48,30 +48,16 @@ export default {
     sendFriendRequest: async function(username) {
       try {
         await this.store.sendFriendRequest(username)
-        this.requests = await this.store.getFriendRequests()
+        await this.store.getFriendRequests()
         this.switchView('normal')
-      } catch (err) {
-        alert(err)
-      }
-    },
-    getFriendRequests: async function() {
-      try {
-        let requests = await this.store.getFriendRequests()
-        console.log(requests)
-        this.requests = requests
+        this.$router.push(`/messages/${username}`)
       } catch (err) {
         alert(err)
       }
     }
   },
   mounted() {
-    this.getFriendRequests()
-  },
-  created() {
-    this.store.socket.on('friend-request', () => {
-      console.log('friend-request')
-      this.getFriendRequests()
-    })
+    this.username = this.store.user.username
   }
 }
 </script>
@@ -109,11 +95,11 @@ export default {
     </div>
   </div>
   <div class="middle" v-if="normalView">
-    <div class="friend normal-friend" v-for="request in requests" @click="this.$emit('open-messages', request.username)">
+    <div class="friend normal-friend" v-for="request in store.requests" @click="this.$emit('open-messages', request)" :class="{ 'active-friend': request.username === store.messagesOpenFor }">
       <span>{{ request.username }}</span>
       <span v-if="!request.accepted_at && request.direction === 'recipient'" class="material-icons-round not-button">priority_high</span>
       <span v-if="!request.accepted_at && request.direction === 'requester'" class="material-icons not-button">schedule</span>
-      <span v-if="request.accepted_at" class="material-icons">menu</span>
+      <span v-if="request.accepted_at" class="material-icons" @click.stop>menu</span>
       <div class="divider"></div>
     </div>
   </div>
@@ -125,7 +111,7 @@ export default {
     </div>
   </div>
   <div class="logout-wrapper">
-    <span>Logged in as <b>{{ store.user ? store.user.username : '' }}</b></span>
+    <span>Logged in as <b>{{ this.username }}</b></span>
     <span class="material-icons" @click="logout">logout</span>
   </div>
 </div>
@@ -144,8 +130,7 @@ export default {
   /* padding: 16px; */
 }
 input {
-  width: 200px;
-  padding-top: 8px;
+  width: 200px!important;
 }
 .top {
   display: flex;
@@ -188,6 +173,9 @@ input {
   cursor: pointer;
 }
 .normal-friend:hover {
+  background: #f5f5f5;
+}
+.active-friend {
   background: #f5f5f5;
 }
 .logout-wrapper {

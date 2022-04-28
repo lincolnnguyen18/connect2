@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --no-minify",
-    "preview": "vite preview --port 5050"
+    "preview": "vite preview --port 3000"
   },
   "dependencies": {
     "add": "^2.0.6",

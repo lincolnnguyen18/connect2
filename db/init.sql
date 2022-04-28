@@ -49,6 +49,19 @@ CREATE PROCEDURE send_friend_request(_requester_id INT, _recipient_username VARC
   INSERT INTO friend_requests (requester_id, recipient_id) VALUES (_requester_id, @recipient_id);
 END //
 
+CREATE PROCEDURE cancel_friend_request(_requester_username VARCHAR(255), _recipient_username VARCHAR(255)) BEGIN
+  SET @recipient_id = (SELECT id FROM users WHERE username = _recipient_username);
+  SET @requester_id = (SELECT id FROM users WHERE username = _requester_username);
+  DELETE FROM friend_requests WHERE requester_id = @requester_id AND recipient_id = @recipient_id;
+  DELETE FROM messages WHERE sender_id = @requester_id AND recipient_id = @recipient_id;
+  DELETE FROM messages WHERE sender_id = @recipient_id AND recipient_id = @requester_id;
+END //
+
+CREATE PROCEDURE accept_friend_request(_recipient_id INT, _requester_username VARCHAR(255)) BEGIN
+  SET @requester_id = (SELECT id FROM users WHERE username = _requester_username);
+  UPDATE friend_requests SET accepted_at = CURRENT_TIMESTAMP WHERE recipient_id = _recipient_id AND requester_id = @requester_id;
+END //
+
 CREATE PROCEDURE get_friend_requests(_id INT) BEGIN
   SELECT users.username, friend_requests.accepted_at, IF(friend_requests.requester_id = _id, 'requester', 'recipient') AS direction FROM users INNER JOIN friend_requests ON
     (friend_requests.requester_id = users.id AND friend_requests.recipient_id = _id) OR

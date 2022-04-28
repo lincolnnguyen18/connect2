@@ -13,16 +13,21 @@ export default {
     sendMessage: function (message) {
       this.store.sendMessage(message)
     }
+  },
+  computed: {
+    inputBarEnabled() {
+      return this.store.messagesOpenForRequest && this.store.messagesOpenForRequest.accepted_at
+    }
   }
 }
 </script>
 
 <template>
 <div class="input-bar">
-  <input type="text" v-model="store.input" @keyup.enter="sendMessage" />
+  <input type="text" v-model="store.input" @keyup.enter="sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" />
   <div class="buttons">
-    <span class="material-symbols-outlined">mic</span>
-    <span class="material-symbols-outlined">arrow_downward</span>
+    <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">mic</span>
+    <!-- <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">arrow_downward</span> -->
     <span class="material-icons button" @click="$router.push('/')">close</span>
   </div>
 </div>
