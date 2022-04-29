@@ -28,7 +28,7 @@ export default {
   <div class="buttons">
     <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">mic</span>
     <!-- <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">arrow_downward</span> -->
-    <!-- <span class="material-icons button" @click="$router.push('/')">close</span> -->
+    <span class="material-icons button" @click="$router.push('/')">close</span>
   </div>
 </div>
 </template>
