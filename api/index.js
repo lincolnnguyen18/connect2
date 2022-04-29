@@ -29,14 +29,16 @@ import { kMaxLength } from 'buffer';
   subscriber.on('error', (err) => console.log('Redis Client Error', err));
   await subscriber.connect();
   await subscriber.subscribe('main', async (message) => {
-    // console.log('Message received: ', message);
-    const { type } = JSON.parse(message);
-    switch (type) {
+    message = JSON.parse(message);
+    console.log('Message received: ', message);
+    switch (message.type) {
       case 'friend-request':
-        clients[message.to] && clients[to].emit('friend-request');
+        clients[message.to] && clients[message.to].emit('friend-request');
+        console.log(`doing clients[${message.to}] && clients[${message.to}].emit('friend-request')`);
         break;
       case 'message':
-        clients[message.to] && clients[to].emit('message');
+        clients[message.to] && clients[message.to].emit('new-message');
+        console.log(`doing clients[${message.to}] && clients[${message.to}].emit('new-message')`);
         break;
     }
   });
@@ -240,6 +242,32 @@ import { kMaxLength } from 'buffer';
     }
   });
 
+  router.get('/get-messages-offset', isLoggedIn, async (req, res) => {
+    const { username, limit, offHr, offMin, offset } = req.query;
+    try {
+      const [rows, fields] = await conn.query('CALL get_messages_offset(?, ?, ?, ?, ?, ?)' , [req.user.id, username, limit, offset, offHr, offMin]);
+      // console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      // console.log(rows[0]);
+      res.send(rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error getting messages' });
+    }
+  });
+
+  router.get('/get-messages-offset-reverse', isLoggedIn, async (req, res) => {
+    const { username, limit, offHr, offMin, offset } = req.query;
+    try {
+      const [rows, fields] = await conn.query('CALL get_messages_offset_reverse(?, ?, ?, ?, ?, ?)' , [req.user.id, username, limit, offset, offHr, offMin]);
+      // console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      // console.log(rows[0]);
+      res.send(rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error getting messages' });
+    }
+  });
+
   router.post('/send-message', isLoggedIn, async (req, res) => {
     const { username, message } = req.body;
     try {
@@ -274,6 +302,10 @@ import { kMaxLength } from 'buffer';
       if (user) {
         console.log(`${user.username} connected`);
         clients[user.username] = socket;
+        // setTimeout(() => {
+        //   clients[user.username].emit('friend-request');
+        //   console.log('TEST');
+        // }, 5000);
         socket.username = user.username;
       } else {
         socket.disconnect();

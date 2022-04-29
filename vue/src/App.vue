@@ -18,7 +18,7 @@ export default {
   // methods: {
   // },
   mounted() {
-    this.store.finishLoading = debounce(this.store.finishLoadingSub, 400)
+    this.store.finishLoading = debounce(this.store.finishLoadingSub, 300)
   },
   // components: {
   //   Loading
@@ -66,7 +66,7 @@ export default {
   z-index: 100;
   /* width: 100%; */
   width: v-bind(progessbarWidth);
-  transition: width 0.3s ease-in-out;
+  transition: width 0.2s ease-in-out;
 }
 html, body, #app {
   height: 100%;

@@ -10,37 +10,47 @@ export default {
     const store = useMainStore()
     return { store }
   },
-  data () {
-    return {
-      messages: []
-    }
-  },
+  // data () {
+  //   return {
+  //     messages: []
+  //   }
+  // },
   methods: {
     openMessages: async function(request) {
-      console.log('Opening messages for', request)
+      // console.log('Opening messages for', request)
       this.$router.push({ name: 'messages', params: { username: request.username } })
-      this.messages = await this.store.getMessages(request.username)
+      this.store.messagesOpenFor = request.username
+      await this.store.getMessages()
     },
+    onScroll: function(e) {
+      if (this.scrolling || this.store.reachedLastMessage) return
+      this.store.startLoading()
+      this.scrolling = true
+      // detect scroll to top
+      setTimeout(() => {
+        if (e.target.scrollTop === 0) {
+          // console.log('Scrolled to top')
+          this.store.getMoreMessagesReverse()
+        }
+        this.scrolling = false
+      }, 500)
+    }
   },
   mounted: async function() {
     // scroll right to bottom
-    this.$refs.right.scrollTop = this.$refs.right.scrollHeight
+    this.store.scrollMessages = () => {
+      // console.log('scrolling')
+      this.$refs.right.scrollTop = this.$refs.right.scrollHeight
+    }
+    this.store.scrollMessagesDownSmall = () => {
+      this.$refs.right.scrollTop = 50
+    }
     await this.store.getFriendRequests()
     const { username } = this.$route.params
     if (username) {
       this.store.messagesOpenFor = username
-      // this.store.getMessages(username).then(messages => {
-      //   this.messages = messages
-      // })
-      try {
-        this.messages = await this.store.getMessages(username)
-      } catch (err) {
-        console.log(err)
-        this.$router.push('/')
-      }
+      await this.store.getMessages()
     }
-    // console.log(this.messages)
-    // if (!this.messages || this.messages.length === 0) this.$router.push('/')
   },
   watch: {
     '$route' (to, from) {
@@ -62,7 +72,7 @@ export default {
 <div class="left">
   <Friends @open-messages="openMessages" />
 </div>
-<div class="right" ref="right" :class="{ 'invisible': !store.messagesOpenFor }">
+<div class="right" ref="right" :class="{ 'invisible': !store.messagesOpenFor }" @scroll="onScroll">
   <InputBar />
   <!-- <div class="close-messages">
     <span class="material-icons button" @click="$router.push('/')">close</span>
@@ -74,7 +84,7 @@ export default {
     <Chat side="right" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." />
   </div> -->
   <div class="messages">
-    <Chat :message="message" v-for="message in messages" />
+    <Chat :message="message" v-for="message in store.messages" />
     <WaitingAccept v-if="waitingEnabled" />
   </div>
 </div>
@@ -101,6 +111,7 @@ export default {
   flex-direction: column;
   gap: 16px;
   padding-left: 7px;
+  scroll-behavior: smooth;
 }
 /* .right > div:nth-child(3) {
   margin-top: 32px;
@@ -108,11 +119,16 @@ export default {
 .right > div:last-child {
   margin-bottom: 40px;
 } */
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .messages > div:first-child {
   margin-top: 32px;
 }
 .messages > div:last-child {
-  margin-bottom: 32px;
+  margin-bottom: 110px;
 }
 </style>
 <style>

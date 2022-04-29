@@ -10,8 +10,9 @@ export default {
     }
   },
   methods: {
-    sendMessage: function (message) {
-      this.store.sendMessage(message)
+    close: function () {
+      this.store.noLoading = true
+      this.$router.push('/')
     }
   },
   computed: {
@@ -24,11 +25,11 @@ export default {
 
 <template>
 <div class="input-bar">
-  <input type="text" v-model="store.input" @keyup.enter="sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" />
+  <input type="text" v-model="store.input" @keyup.enter="store.sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" />
   <div class="buttons">
     <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">mic</span>
     <!-- <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">arrow_downward</span> -->
-    <span class="material-icons button" @click="$router.push('/')">close</span>
+    <span class="material-icons button" @click="close">close</span>
   </div>
 </div>
 </template>

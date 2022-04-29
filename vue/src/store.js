@@ -34,7 +34,13 @@ export const useMainStore = defineStore({
     loadingProgress: 50,
     finishLoading: null,
     requests: [],
-    messages: []
+    messages: [],
+    scrollMessages: null,
+    scrollMessagesDownSmall: null,
+    messageSending: false,
+    scrolling: false,
+    reachedLastMessage: false,
+    noLoading: false,
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,
@@ -48,6 +54,10 @@ export const useMainStore = defineStore({
   actions: {
     startLoading() {
       if (!this.loading) {
+        if (this.noLoading) {
+          this.loading = true
+          return
+        }
         this.loadingProgress = 0
         this.loading = true
         setTimeout(() => {
@@ -57,12 +67,17 @@ export const useMainStore = defineStore({
       }
     },
     finishLoadingSub() {
+      if (!this.loading) return
+      if (this.noLoading) {
+        this.loading = false
+        return
+      }
       console.log(`FINISH LOADING ${this.totalLoading}`)
       this.loadingProgress = 100
       setTimeout(() => {
         this.loading = false
-        console.log(this.loadingProgress, this.loading)
-      }, 600)
+        console.log(`HIDE LOADING ${this.totalLoading}`)
+      }, 400)
     },
     async register(username, password) {
       await fetch('/api/register', {
@@ -98,16 +113,16 @@ export const useMainStore = defineStore({
             this.user = res.user;
             this.socket = io();
             this.socket.on('connect', () => {
-              console.log('connected')
+              // console.log('connected')
               this.socket.emit('login', getCookie('token'))
               this.socket.on('friend-request', async () => {
-                console.log('friend-request')
+                // console.log('friend-request')
                 await this.getFriendRequests()
                 if (!this.messagesOpenForRequest) router.push('/')
               })
-              this.socket.on('message', async () => {
-                console.log('message')
-                await this.getMessages()
+              this.socket.on('new-message', async () => {
+                // console.log('new-message')
+                await this.getMoreMessages()
               });
             })
           }
@@ -145,8 +160,33 @@ export const useMainStore = defineStore({
       this.messages = [];
       this.socket.disconnect();
     },
-    async sendMessage(message) {
-      console.log(`Sending message: ${message}`);
+    async sendMessage() {
+      let message = this.input;
+      if (message.trim().length === 0 || this.messageSending) return;
+      // console.log(`Sending message: ${message}`);
+      this.messageSending = true;
+      await fetch(`/api/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: this.messagesOpenFor, message })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+      this.noLoading = true;
+      if (this.messages.length) {
+        await this.getMoreMessages();
+      } else {
+        await this.getMessages();
+      }
+      this.input = '';
+      this.messageSending = false;
     },
     async findFriends(username) {
       if (username) {
@@ -231,28 +271,77 @@ export const useMainStore = defineStore({
         .then(res => {
           this.finishLoading()
           this.requests = res;
-          if (!this.messagesOpenForRequest) this.messagesOpenFor = null;
+          // if (!this.messagesOpenForRequest) this.messagesOpenFor = null;
         });
     },
-    async getMessages(username) {
+    async getMessages() {
       this.startLoading()
-      // if username not in this.requests, throw error
-      if (!this.requests.find(r => r.username === username)) {
-        throw new Error('User not found');
-      }
+      let username = this.messagesOpenFor
+      // console.log(`Getting messages for: ${username}`);
       if (username) {
         let limit = Math.floor(window.innerHeight / 77);
-        // get timezoneOffsetHr and timezoneOffsetMin
-        return await fetch(`/api/get-messages?username=${encodeURIComponent(username)}&limit=${limit}&offHr=${offHr}&offMin=${offMin}`)
+        await fetch(`/api/get-messages?username=${encodeURIComponent(username)}&limit=${limit}&offHr=${offHr}&offMin=${offMin}`)
           .then(res => res.json())
           .then(res => {
             this.finishLoading()
             this.messagesOpenFor = username;
-            if (res.length == 0) console.log('NO MESSAGES', res);
-            else console.log('MESSAGES', res);
-            return res;
+            // if (res.length == 0) console.log('NO MESSAGES', res);
+            // else console.log('MESSAGES', res);
+            this.messages = res.reverse();
+            this.reachedLastMessage = false
           });
+        this.scrollMessages()
       }
     },
+    async getMoreMessages() {
+      if (!this.messages.length) {
+        this.getMessages()
+      } else {
+        let username = this.messagesOpenFor
+        if (username) {
+          let limit = Math.floor(window.innerHeight / 77);
+          // get timezoneOffsetHr and timezoneOffsetMin
+          await fetch(`/api/get-messages-offset?username=${encodeURIComponent(username)}&limit=${limit}&offHr=${offHr}&offMin=${offMin}&offset=${this.messages[this.messages.length - 1].id}`)
+            .then(res => res.json())
+            .then(res => {
+              this.messagesOpenFor = username;
+              // if (res.length == 0) console.log('NO MORE MESSAGES', res);
+              // else console.log('MORE MESSAGES', res);
+              this.messages = this.messages.concat(res.reverse());
+            });
+          this.scrollMessages()
+        }
+      }
+    },
+    async getMoreMessagesReverse() {
+      if (!this.messages.length) {
+        this.getMessages()
+      } else {
+        let username = this.messagesOpenFor
+        let hadMore = false
+        if (username) {
+          let limit = Math.floor(window.innerHeight / 77);
+          // get timezoneOffsetHr and timezoneOffsetMin
+          await fetch(`/api/get-messages-offset-reverse?username=${encodeURIComponent(username)}&limit=${limit}&offHr=${offHr}&offMin=${offMin}&offset=${this.messages[0].id}`)
+            .then(res => res.json())
+            .then(res => {
+              this.messagesOpenFor = username;
+              if (res.length == 0) {
+                // console.log('NO MORE MESSAGES', res);
+              } else {
+                // console.log('MORE MESSAGES', res);
+                hadMore = true
+              }
+              this.messages = res.reverse().concat(this.messages);
+            });
+          if (hadMore) {
+            this.scrollMessagesDownSmall()
+            this.reachedLastMessage = false
+          } else
+            this.reachedLastMessage = true
+          this.finishLoading()
+        }
+      }
+    }
   }
 })
