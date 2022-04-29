@@ -20,8 +20,19 @@ export default {
     },
     startIndex: {
       type: Number,
-      required: true
+      required: false,
+      default: 0
     },
+    paddingX: {
+      type: String,
+      required: true,
+      default: '8px'
+    },
+    paddingY: {
+      type: String,
+      required: true,
+      default: '8px'
+    }
   },
   methods: {
     updateScroll() {
@@ -33,11 +44,14 @@ export default {
   data() {
     return {
       keydown: null,
-      curIndex: this.startIndex,
+      curIndex: this.items.length > 1 ? this.startIndex : null,
       refs: {}
     }
   },
   mounted() {
+    if (!this.curIndex) {
+      return
+    }
     // scroll dropdown so that startIndex is visible
     this.$nextTick(() => {
       this.updateScroll()
@@ -73,7 +87,7 @@ export default {
 
 <template>
   <div class="dropdown" ref="dropdown">
-    <div class="item" v-for="(item, index) in items" @click="$emit('select', index)" :class="{ 'item-selected': index === curIndex }" :ref="'item' + index">{{ item }}</div>
+    <div class="item" v-for="(item, index) in items" @click="$emit('select')" :class="{ 'item-selected': index === curIndex }" :ref="'item' + index">{{ item }}</div>
   </div>
 </template>
 
@@ -86,14 +100,22 @@ export default {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 7px;
   top: v-bind('fromTop');
-  left: 0;
+  right: 0;
   height: v-bind('height');
   overflow: auto;
+  z-index: 3;
+  user-select: none;
 }
 .item {
   border-bottom: 1px solid #efefef;
-  padding: 4px 8px;
+  padding-top: v-bind('paddingY');
+  padding-bottom: v-bind('paddingY');
+  padding-left: v-bind('paddingX');
+  padding-right: v-bind('paddingX');
   position: relative;
+}
+.dropdown:last-child {
+  border-bottom: none;
 }
 .item:hover {
   background: #efefef;

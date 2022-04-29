@@ -219,6 +219,22 @@ import { kMaxLength } from 'buffer';
     }
   });
 
+  router.post('/delete-friend', isLoggedIn, async (req, res) => {
+    const { username } = req.body;
+    try {
+      await conn.query('CALL delete_friend(?, ?)' , [req.user.id, username]);
+      console.log(`Calling delete_friend(${req.user.id}, ${username})`);
+      publisher.publish('main', JSON.stringify({
+        type: 'friend-request',
+        to: username
+      }));
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error deleting friend' });
+    }
+  });
+
   router.get('/get-friend-requests', isLoggedIn, async (req, res) => {
     try {
       const [rows, fields] = await conn.query('CALL get_friend_requests(?)' , [req.user.id]);

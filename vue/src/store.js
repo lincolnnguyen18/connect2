@@ -256,6 +256,23 @@ export const useMainStore = defineStore({
           }
         });
     },
+    async deleteFriend(username) {
+      await fetch(`/api/delete-friend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username })
+      })
+        .then(res => res.json())
+        .then(res => {
+          this.getFriendRequests()
+          if (res.error) {
+            console.log(res);
+            throw new Error(res.error);
+          }
+        });
+    },
     async acceptFriendRequest() {
       await fetch(`/api/accept-friend-request`, {
         method: 'POST',

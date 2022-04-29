@@ -15,8 +15,12 @@ CREATE TABLE IF NOT EXISTS friend_requests (
   recipient_id INTEGER NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   accepted_at DATETIME,
-  FOREIGN KEY (requester_id) REFERENCES users(id),
-  FOREIGN KEY (recipient_id) REFERENCES users(id),
+  FOREIGN KEY (requester_id) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  FOREIGN KEY (recipient_id) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   UNIQUE (requester_id, recipient_id)
 );
 
@@ -25,7 +29,13 @@ CREATE TABLE IF NOT EXISTS messages (
   sender_id INTEGER NOT NULL,
   recipient_id INTEGER NOT NULL,
   body TEXT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sender_id) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  FOREIGN KEY (recipient_id) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 DELIMITER //
@@ -60,6 +70,14 @@ END //
 CREATE PROCEDURE accept_friend_request(_recipient_id INT, _requester_username VARCHAR(255)) BEGIN
   SET @requester_id = (SELECT id FROM users WHERE username = _requester_username);
   UPDATE friend_requests SET accepted_at = CURRENT_TIMESTAMP WHERE recipient_id = _recipient_id AND requester_id = @requester_id;
+END //
+
+CREATE PROCEDURE delete_friend(_id INT, _friend_username VARCHAR(255)) BEGIN
+  SET @friend_id = (SELECT id FROM users WHERE username = _friend_username);
+  DELETE FROM friend_requests WHERE requester_id = @friend_id AND recipient_id = _id;
+  DELETE FROM friend_requests WHERE requester_id = _id AND recipient_id = @friend_id;
+  DELETE FROM messages WHERE sender_id = @friend_id AND recipient_id = _id;
+  DELETE FROM messages WHERE sender_id = _id AND recipient_id = @friend_id;
 END //
 
 CREATE PROCEDURE get_friend_requests(_id INT) BEGIN

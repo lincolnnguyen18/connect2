@@ -18,16 +18,36 @@ export default {
       lastSearch: '',
       findFriendsUsers: [],
       username: '',
-      languagesOpen: false
+      languagesOpen: false,
+      menuOpenRequest: null,
     }
   },
   methods: {
+    friendClick: function(request) {
+      this.$emit('open-messages', request)
+      this.menuOpenRequest = null
+    },
     select(index) {
       console.log('select', index)
       this.store.langIndex = index
       this.languagesOpen = false
     },
+    menuSelect(request) {
+      console.log('menuSelect', request)
+      if(confirm('Are you sure you want to unfriend ' + request.username + '?')) {
+        this.store.deleteFriend(request.username)
+      }
+      this.menuOpenRequest = null
+    },
+    openMenu(request) {
+      if (this.menuOpenRequest && this.menuOpenRequest.username === request.username)
+        this.menuOpenRequest = null
+      else
+        this.menuOpenRequest = request
+      console.log(this.menuOpenRequest)
+    },
     switchView(view) {
+      this.menuOpenRequest = null
       console.log('switchView', view)
       this.normalView = view === 'normal'
       this.findFriendsView = view === 'findFriends'
@@ -102,16 +122,19 @@ export default {
       <div class="languages" @click="languagesOpen=!languagesOpen">
         <span class="langText">{{ store.langFulls[store.langIndex] }}</span>
         <span class="material-icons not-button">arrow_drop_down</span>
-        <Dropdown fromTop="36px" height="400px" :items="store.langFulls" v-if="languagesOpen" @click.stop @select="select" :startIndex="store.langIndex" />
+        <Dropdown fromTop="36px" height="400px" :items="store.langFulls" v-if="languagesOpen" @click.stop @select="select" :startIndex="store.langIndex" paddingX="8px" paddingY="4px" />
       </div>
     </div>
   </div>
   <div class="middle" v-if="normalView">
-    <div class="friend normal-friend" v-for="request in store.requests" @click="this.$emit('open-messages', request)" :class="{ 'active-friend': request.username === store.messagesOpenFor }">
+    <div class="friend normal-friend" v-for="request in store.requests" @click="friendClick(request)" :class="{ 'active-friend': request.username === store.messagesOpenFor }">
       <span>{{ request.username }}</span>
       <span v-if="!request.accepted_at && request.direction === 'recipient'" class="material-icons-round not-button">priority_high</span>
       <span v-if="!request.accepted_at && request.direction === 'requester'" class="material-icons not-button">schedule</span>
-      <span v-if="request.accepted_at" class="material-icons" @click.stop>menu</span>
+      <div class="menu-wrapper" v-if="request.accepted_at">
+        <span class="material-icons" @click.stop="openMenu(request)">menu</span>
+        <Dropdown fromTop="36px" height="fit-content" :items="['Unfriend']" v-if="menuOpenRequest && menuOpenRequest.username === request.username" @click.stop @select="menuSelect(request)" paddingX="12px" paddingY="8px" />
+      </div>
       <div class="divider"></div>
     </div>
   </div>
@@ -228,5 +251,8 @@ input {
 }
 .settings-middle {
   padding: 0 16px;
+}
+.menu-wraper {
+  position: relative;
 }
 </style>
