@@ -18,12 +18,15 @@ export default {
       lastSearch: '',
       findFriendsUsers: [],
       username: '',
-      languagesOpen: false,
-      langAbbrevs: ["af-ZA","id-ID","ms-MY","ca-ES","cs-CZ","de-De","en-AU","en-CA","en-IN","en-NZ","en-ZA","en-GB","en-US","es-AR","es-BO","es-CL","es-CO","es-CR","es-EC","es-SV","es-ES","es-US","es-GT","es-HN","es-MX","es-NI","es-PA","es-PY","es-PE","es-PR","es-DO","es-UY","es-VE","eu-ES","fr-FR","gl-ES","hr-HR","zu-ZA","is-IS","it-IT","it-CH","hu-HU","nl-NL","nb-NO","pl-PL","pt-BR","pt-PT","ro-RO","sk-SK","fi-FI","sv-SE","tr-TR","bg-BG","ru-RU","sr-RS","ko-KR","cmn-Hans-CN","cmn-Hans-HK","cmn-Hant-TW","yue-Hant-HK","ja-JP","la"],
-      langFulls: ["Afrikaans","Bahasa Indonesia","Bahasa Melayu","Català","Čeština","Deutsch","English (Australia)","English (Canada)","English (India)","English (New Zealand)","English (South Africa)","English (United Kingdom)","English (United States)","Español (Argentina)","Español (Bolivia)","Español (Chile)","Español (Colombia)","Español (Costa Rica)","Español (Ecuador)","Español (El Salvador)","Español (España)","Español (Estados Unidos)","Español (Guatemala)","Español (Honduras)","Español (México)","Español (Nicaragua)","Español (Panamá)","Español (Paraguay)","Español (Perú)","Español (Puerto Rico)","Español (República Dominicana)","Español (Uruguay)","Español (Venezuela)","Euskara","Français","Galego","Hrvatski","IsiZulu","Íslenska","Italiano (Italia)","Italiano (Svizzera)","Magyar","Nederlands","Norsk bokmål","Polski","Português (Brasil)","Português (Portugal)","Română","Slovenčina","Suomi","Svenska","Türkçe","български","Pусский","Српски","한국어","中文 普通话 (中国大陆)","中文 普通话 (香港)","中文 中文 (台灣)","中文 粵語 (香港)","日本語","Lingua latīna"],
+      languagesOpen: false
     }
   },
   methods: {
+    select(index) {
+      console.log('select', index)
+      this.store.langIndex = index
+      this.languagesOpen = false
+    },
     switchView(view) {
       console.log('switchView', view)
       this.normalView = view === 'normal'
@@ -36,6 +39,7 @@ export default {
       } else {
         this.search = ''
         this.lastSearch = ''
+        this.languagesOpen = false
       }
     },
     doSearch: async function () {
@@ -96,9 +100,9 @@ export default {
     <div class="languages-wrapper">
       <div class="h2">Microphone language</div>
       <div class="languages" @click="languagesOpen=!languagesOpen">
-        <span>English</span>
+        <span class="langText">{{ store.langFulls[store.langIndex] }}</span>
         <span class="material-icons not-button">arrow_drop_down</span>
-        <Dropdown fromTop="30px" height="400px" :items="langFulls" v-show="languagesOpen" @click.stop />
+        <Dropdown fromTop="36px" height="400px" :items="store.langFulls" v-if="languagesOpen" @click.stop @select="select" :startIndex="store.langIndex" />
       </div>
     </div>
   </div>
@@ -196,7 +200,7 @@ input {
 .languages-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 .languages {
@@ -205,6 +209,16 @@ input {
   cursor: pointer;
   position: relative;
   user-select: none;
+  background: #f5f5f5;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.langText {
+  width: 150px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .search {
   font-size: 14px;

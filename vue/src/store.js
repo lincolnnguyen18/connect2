@@ -45,6 +45,9 @@ export const useMainStore = defineStore({
     autoScroll: true,
     micOn: false,
     scrollBehavior: "smooth",
+    langIndex: 12,
+    langAbbrevs: ["af-ZA","id-ID","ms-MY","ca-ES","cs-CZ","de-De","en-AU","en-CA","en-IN","en-NZ","en-ZA","en-GB","en-US","es-AR","es-BO","es-CL","es-CO","es-CR","es-EC","es-SV","es-ES","es-US","es-GT","es-HN","es-MX","es-NI","es-PA","es-PY","es-PE","es-PR","es-DO","es-UY","es-VE","eu-ES","fr-FR","gl-ES","hr-HR","zu-ZA","is-IS","it-IT","it-CH","hu-HU","nl-NL","nb-NO","pl-PL","pt-BR","pt-PT","ro-RO","sk-SK","fi-FI","sv-SE","tr-TR","bg-BG","ru-RU","sr-RS","ko-KR","cmn-Hans-CN","cmn-Hans-HK","cmn-Hant-TW","yue-Hant-HK","ja-JP","la"],
+    langFulls: ["Afrikaans","Bahasa Indonesia","Bahasa Melayu","Català","Čeština","Deutsch","English (Australia)","English (Canada)","English (India)","English (New Zealand)","English (South Africa)","English (United Kingdom)","English (United States)","Español (Argentina)","Español (Bolivia)","Español (Chile)","Español (Colombia)","Español (Costa Rica)","Español (Ecuador)","Español (El Salvador)","Español (España)","Español (Estados Unidos)","Español (Guatemala)","Español (Honduras)","Español (México)","Español (Nicaragua)","Español (Panamá)","Español (Paraguay)","Español (Perú)","Español (Puerto Rico)","Español (República Dominicana)","Español (Uruguay)","Español (Venezuela)","Euskara","Français","Galego","Hrvatski","IsiZulu","Íslenska","Italiano (Italia)","Italiano (Svizzera)","Magyar","Nederlands","Norsk bokmål","Polski","Português (Brasil)","Português (Portugal)","Română","Slovenčina","Suomi","Svenska","Türkçe","български","Pусский","Српски","한국어","中文 普通话 (中国大陆)","中文 普通话 (香港)","中文 中文 (台灣)","中文 粵語 (香港)","日本語","Lingua latīna"],
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,
