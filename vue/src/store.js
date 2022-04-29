@@ -127,7 +127,6 @@ export const useMainStore = defineStore({
               this.socket.on('friend-request', async () => {
                 // console.log('friend-request')
                 await this.getFriendRequests()
-                if (!this.messagesOpenForRequest) router.push('/')
               })
               this.socket.on('new-message', async () => {
                 // console.log('new-message')
@@ -297,7 +296,7 @@ export const useMainStore = defineStore({
         .then(res => {
           this.finishLoading()
           this.requests = res;
-          // if (!this.messagesOpenForRequest) this.messagesOpenFor = null;
+          if (!this.messagesOpenForRequest) router.push('/')
         });
     },
     async getMessages() {
