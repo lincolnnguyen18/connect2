@@ -132,6 +132,10 @@ button:hover {
 .invisible {
   visibility: hidden;
 }
+.invisible2 {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
 .disabled {
   opacity: 0.1;
   pointer-events: none;

@@ -23,22 +23,33 @@ export default {
       await this.store.getMessages()
     },
     onScroll: function(e) {
+      // detect scroll to bottom
+      if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+        this.store.atBottom = true
+        this.store.autoScroll = true
+      } else {
+        this.store.atBottom = false
+        this.store.autoScroll = false
+      }
       if (this.scrolling || this.store.reachedLastMessage) return
-      this.store.startLoading()
-      this.scrolling = true
-      // detect scroll to top
-      setTimeout(() => {
-        if (e.target.scrollTop === 0) {
-          // console.log('Scrolled to top')
-          this.store.getMoreMessagesReverse()
-        }
-        this.scrolling = false
-      }, 500)
+      if (e.target.scrollTop === 0) {
+        // detect scroll to top
+        setTimeout(() => {
+          if (e.target.scrollTop === 0) {
+            this.store.startLoading()
+            this.scrolling = true
+            // console.log('Scrolled to top')
+            this.store.getMoreMessagesReverse()
+          }
+          this.scrolling = false
+        }, 500)
+      }
     }
   },
   mounted: async function() {
     // scroll right to bottom
     this.store.scrollMessages = () => {
+      if (!this.store.autoScroll) return
       // console.log('scrolling')
       this.$refs.right.scrollTop = this.$refs.right.scrollHeight
     }
@@ -74,6 +85,9 @@ export default {
 </div>
 <div class="right" ref="right" :class="{ 'invisible': !store.messagesOpenFor }" @scroll="onScroll">
   <InputBar />
+  <!-- <div class="scroll-down">
+    <span class="material-icons button" @click="scrollDown">close</span>
+  </div> -->
   <!-- <div class="close-messages">
     <span class="material-icons button" @click="$router.push('/')">close</span>
   </div> -->
@@ -125,7 +139,7 @@ export default {
   gap: 16px;
 }
 .messages > div:first-child {
-  margin-top: 32px;
+  margin-top: 38px;
 }
 .messages > div:last-child {
   margin-bottom: 110px;
@@ -160,18 +174,5 @@ export default {
 .date {
   font-size: 12px;
   color: #8e8e8e;
-}
-.close-messages {
-  position: absolute;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border-radius: 16px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  z-index: 10;
-  top: 32px;
-  right: 0px;
 }
 </style>
