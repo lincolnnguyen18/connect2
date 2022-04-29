@@ -32,7 +32,7 @@ export default {
 </script>
 
 <template>
-<div class="progress-bar" v-show="store.loading"></div>
+<div class="progress-bar" v-show="store.loading && !store.noLoading"></div>
 <!-- <div class="loading-screen" v-show="store.loading">
   <Loading :width="100" color="black"></Loading>
 </div> -->

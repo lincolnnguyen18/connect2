@@ -44,7 +44,7 @@ export default {
             this.store.scrollBehavior = 'smooth'
           }
           this.scrolling = false
-        }, 200)
+        }, 100)
       }
     }
   },

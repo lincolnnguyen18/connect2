@@ -16,10 +16,10 @@ export default {
   methods: {
     close: async function () {
       this.store.noLoading = true
+      this.store.loading = true
       this.store.messagesOpenFor = null;
       this.store.messages = [];
       await this.$router.push('/')
-      this.store.noLoading = false
     },
     scrollDown: function() {
       this.store.autoScroll = true
@@ -42,7 +42,7 @@ export default {
   <div class="scroll-down" :class="{ 'invisible2': store.atBottom }">
     <span class="material-icons button" @click="scrollDown">arrow_downward</span>
   </div>
-  <input type="text" v-model="store.input" @keyup.enter="store.sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" />
+  <input type="text" v-model="store.input" @keyup.enter="store.sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" placeholder="Type a message..." />
   <div class="buttons">
     <Pulse v-show="store.micOn" :width="24" :radius1="9" :radius2="4" :step="0.05" @click="toggleMic" />
     <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }" @click="toggleMic" v-show="!store.micOn">mic</span>

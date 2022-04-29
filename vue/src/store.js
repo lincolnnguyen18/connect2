@@ -42,7 +42,7 @@ export const useMainStore = defineStore({
     reachedLastMessage: false,
     noLoading: false,
     atBottom: false,
-    autoScroll: false,
+    autoScroll: true,
     micOn: false,
     scrollBehavior: "smooth",
   }),
@@ -59,7 +59,8 @@ export const useMainStore = defineStore({
     startLoading() {
       if (!this.loading) {
         if (this.noLoading) {
-          this.loading = true
+          this.loadingProgress = 0
+          this.loading = false
           return
         }
         this.loadingProgress = 0
@@ -74,13 +75,14 @@ export const useMainStore = defineStore({
       if (!this.loading) return
       if (this.noLoading) {
         this.loading = false
+        this.noLoading = false
         return
       }
       console.log(`FINISH LOADING ${this.totalLoading}`)
       this.loadingProgress = 100
       setTimeout(() => {
         this.loading = false
-        console.log(`HIDE LOADING ${this.totalLoading}`)
+        // console.log(`HIDE LOADING ${this.totalLoading}`)
       }, 400)
     },
     async register(username, password) {

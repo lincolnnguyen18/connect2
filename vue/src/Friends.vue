@@ -98,7 +98,7 @@ export default {
       <div class="languages" @click="languagesOpen=!languagesOpen">
         <span>English</span>
         <span class="material-icons not-button">arrow_drop_down</span>
-        <Dropdown fromTop="30px" height="400px" :items="langFulls" v-if="languagesOpen" @click.stop />
+        <Dropdown fromTop="30px" height="400px" :items="langFulls" v-show="languagesOpen" @click.stop />
       </div>
     </div>
   </div>
