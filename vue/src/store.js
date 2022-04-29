@@ -32,7 +32,8 @@ export const useMainStore = defineStore({
     loading: false,
     loadingProgress: 50,
     finishLoading: null,
-    requests: []
+    requests: [],
+    messages: []
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,
@@ -101,6 +102,10 @@ export const useMainStore = defineStore({
                 await this.getFriendRequests()
                 if (!this.messagesOpenForRequest) router.push('/')
               })
+              this.socket.on('message', async () => {
+                console.log('message')
+                await this.getMessages()
+              });
             })
           }
         });

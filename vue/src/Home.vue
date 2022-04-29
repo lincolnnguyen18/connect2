@@ -72,6 +72,9 @@ export default {
   </div> -->
   <Chat :message="message" v-for="message in messages" />
   <WaitingAccept v-if="waitingEnabled" />
+  <div class="close-messages">
+    <span class="material-icons button" @click="$router.push('/')">close</span>
+  </div>
 </div>
 </template>
 
@@ -133,5 +136,17 @@ export default {
 .date {
   font-size: 12px;
   color: #8e8e8e;
+}
+.close-messages {
+  position: absolute;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  right: 0px;
 }
 </style>

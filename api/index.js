@@ -9,6 +9,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Server } from 'socket.io';
 import http from 'http';
 import { createClient } from 'redis';
+import { kMaxLength } from 'buffer';
 
 (async () => {
   const conn = await mysql2.createConnection({
@@ -32,8 +33,10 @@ import { createClient } from 'redis';
     const { type } = JSON.parse(message);
     switch (type) {
       case 'friend-request':
-        const { to } = JSON.parse(message);
-        clients[to] && clients[to].emit('friend-request', message);
+        clients[message.to] && clients[to].emit('friend-request');
+        break;
+      case 'message':
+        clients[message.to] && clients[to].emit('message');
         break;
     }
   });
@@ -234,6 +237,21 @@ import { createClient } from 'redis';
     } catch (err) {
       console.log(err);
       res.send({ error: 'Error getting messages' });
+    }
+  });
+
+  router.post('/send-message', isLoggedIn, async (req, res) => {
+    const { username, message } = req.body;
+    try {
+      await conn.query('CALL send_message(?, ?, ?)', [username, req.user.username, message]);
+      publisher.publish('main', JSON.stringify({
+        type: 'message',
+        to: username
+      }));
+      res.send({});
+    } catch (err) {
+      console.log(err);
+      res.send({ error: 'Error sending message' });
     }
   });
 
