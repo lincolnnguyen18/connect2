@@ -42,7 +42,7 @@ export default {
       this.$router.push('/login')
       // console router route
       console.log(`PATH: ${this.$route.path}`)
-      console.log(this.store.loggedIn, this.store.user)
+      // console.log(this.store.loggedIn, this.store.user)
 
     },
     sendFriendRequest: async function(username) {

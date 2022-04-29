@@ -64,16 +64,18 @@ export default {
 </div>
 <div class="right" ref="right" :class="{ 'invisible': !store.messagesOpenFor }">
   <InputBar />
+  <div class="close-messages">
+    <span class="material-icons button" @click="$router.push('/')">close</span>
+  </div>
   <!-- <div class="left-bubble-wrapper">
     <Chat side="left" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
   </div>
   <div class="right-bubble-wrapper">
     <Chat side="right" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." />
   </div> -->
-  <Chat :message="message" v-for="message in messages" />
-  <WaitingAccept v-if="waitingEnabled" />
-  <div class="close-messages">
-    <span class="material-icons button" @click="$router.push('/')">close</span>
+  <div class="messages">
+    <Chat :message="message" v-for="message in messages" />
+    <WaitingAccept v-if="waitingEnabled" />
   </div>
 </div>
 </template>
@@ -100,11 +102,17 @@ export default {
   gap: 16px;
   padding-left: 7px;
 }
-.right > div:nth-child(2) {
+/* .right > div:nth-child(3) {
   margin-top: 32px;
 }
 .right > div:last-child {
   margin-bottom: 40px;
+} */
+.messages > div:first-child {
+  margin-top: 32px;
+}
+.messages > div:last-child {
+  margin-bottom: 32px;
 }
 </style>
 <style>
@@ -147,6 +155,7 @@ export default {
   border-radius: 16px;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   z-index: 10;
+  top: 32px;
   right: 0px;
 }
 </style>

@@ -28,6 +28,7 @@ export const useMainStore = defineStore({
     input: '',
     user: null,
     messagesOpenFor: null,
+    messagesOpenForRequest: null,
     socket: null,
     loading: false,
     loadingProgress: 50,
@@ -39,7 +40,9 @@ export const useMainStore = defineStore({
     doubleCount: (state) => state.counter * 2,
     messagesOpenForRequest: (state) => {
       // get request with username matching messagesOpenFor
-      return state.requests.find(r => r.username === state.messagesOpenFor)
+      if(state.messagesOpenFor)
+        return state.requests.find(r => r.username === state.messagesOpenFor)
+      return null
     }
   },
   actions: {
@@ -137,6 +140,9 @@ export const useMainStore = defineStore({
       eraseCookie('token');
       this.loggedIn = false;
       this.user = null;
+      this.messagesOpenFor = null;
+      this.requests = [];
+      this.messages = [];
       this.socket.disconnect();
     },
     async sendMessage(message) {

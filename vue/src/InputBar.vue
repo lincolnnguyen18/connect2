@@ -41,7 +41,7 @@ export default {
   width: 100%;
   max-width: 837px;
   bottom: 0;
-  margin-bottom: 28px;
+  margin-bottom: 38px;
   align-items: center;
   padding: 7px;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
