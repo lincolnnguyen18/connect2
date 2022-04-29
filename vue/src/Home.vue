@@ -34,15 +34,17 @@ export default {
       if (this.scrolling || this.store.reachedLastMessage) return
       if (e.target.scrollTop === 0) {
         // detect scroll to top
-        setTimeout(() => {
+        setTimeout(async () => {
           if (e.target.scrollTop === 0) {
             this.store.startLoading()
             this.scrolling = true
             // console.log('Scrolled to top')
-            this.store.getMoreMessagesReverse()
+            this.store.scrollBehavior = 'auto'
+            await this.store.getMoreMessagesReverse(this.$refs.right.scrollHeight)
+            this.store.scrollBehavior = 'smooth'
           }
           this.scrolling = false
-        }, 500)
+        }, 200)
       }
     }
   },
@@ -53,14 +55,17 @@ export default {
       // console.log('scrolling')
       this.$refs.right.scrollTop = this.$refs.right.scrollHeight
     }
-    this.store.scrollMessagesDownSmall = () => {
-      this.$refs.right.scrollTop = 50
+    this.store.scrollMessagesDownSmall = (oldScrollHeight) => {
+      console.log(this.$refs.right.scrollHeight - oldScrollHeight)
+      // scroll down by height of refs.right
+      this.$refs.right.scrollTop = this.$refs.right.scrollHeight - oldScrollHeight
     }
     await this.store.getFriendRequests()
     const { username } = this.$route.params
     if (username) {
       this.store.messagesOpenFor = username
       await this.store.getMessages()
+      this.$refs.right.scrollTop = this.$refs.right.scrollHeight
     }
   },
   watch: {
@@ -85,18 +90,6 @@ export default {
 </div>
 <div class="right" ref="right" :class="{ 'invisible': !store.messagesOpenFor }" @scroll="onScroll">
   <InputBar />
-  <!-- <div class="scroll-down">
-    <span class="material-icons button" @click="scrollDown">close</span>
-  </div> -->
-  <!-- <div class="close-messages">
-    <span class="material-icons button" @click="$router.push('/')">close</span>
-  </div> -->
-  <!-- <div class="left-bubble-wrapper">
-    <Chat side="left" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-  </div>
-  <div class="right-bubble-wrapper">
-    <Chat side="right" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." />
-  </div> -->
   <div class="messages">
     <Chat :message="message" v-for="message in store.messages" />
     <WaitingAccept v-if="waitingEnabled" />
@@ -125,7 +118,7 @@ export default {
   flex-direction: column;
   gap: 16px;
   padding-left: 7px;
-  scroll-behavior: smooth;
+  scroll-behavior: v-bind('store.scrollBehavior');
 }
 /* .right > div:nth-child(3) {
   margin-top: 32px;

@@ -47,7 +47,7 @@ export default {
     let radius = this.radius1;
     let sign = 1;
     canvas.width = this.width;
-    canvas.height = this.radius1 * 2;
+    canvas.height = this.width;
     // animate pulsing filled circle by increasing and decreasing radius
     const drawIt = () => {
       var canvas = this.$refs.canvas;

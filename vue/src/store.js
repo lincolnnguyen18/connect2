@@ -42,8 +42,9 @@ export const useMainStore = defineStore({
     reachedLastMessage: false,
     noLoading: false,
     atBottom: false,
-    autoScroll: true,
-    micOn: false
+    autoScroll: false,
+    micOn: false,
+    scrollBehavior: "smooth",
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,
@@ -316,7 +317,7 @@ export const useMainStore = defineStore({
         }
       }
     },
-    async getMoreMessagesReverse() {
+    async getMoreMessagesReverse(oldScrollHeight) {
       if (!this.messages.length) {
         this.getMessages()
       } else {
@@ -338,7 +339,7 @@ export const useMainStore = defineStore({
               this.messages = res.reverse().concat(this.messages);
             });
           if (hadMore) {
-            this.scrollMessagesDownSmall()
+            this.scrollMessagesDownSmall(oldScrollHeight)
             this.reachedLastMessage = false
           } else
             this.reachedLastMessage = true

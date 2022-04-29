@@ -14,9 +14,12 @@ export default {
     Pulse
   },
   methods: {
-    close: function () {
+    close: async function () {
       this.store.noLoading = true
-      this.$router.push('/')
+      this.store.messagesOpenFor = null;
+      this.store.messages = [];
+      await this.$router.push('/')
+      this.store.noLoading = false
     },
     scrollDown: function() {
       this.store.autoScroll = true
