@@ -42,7 +42,8 @@ export const useMainStore = defineStore({
     reachedLastMessage: false,
     noLoading: false,
     atBottom: false,
-    autoScroll: true
+    autoScroll: true,
+    micOn: false
   }),
   getters: {
     doubleCount: (state) => state.counter * 2,

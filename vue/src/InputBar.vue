@@ -1,5 +1,6 @@
 <script>
 import { useMainStore } from './store'
+import Pulse from './Pulse.vue'
 export default {
   setup() {
     const store = useMainStore()
@@ -9,6 +10,9 @@ export default {
     return {
     }
   },
+  components: {
+    Pulse
+  },
   methods: {
     close: function () {
       this.store.noLoading = true
@@ -17,6 +21,9 @@ export default {
     scrollDown: function() {
       this.store.autoScroll = true
       this.store.scrollMessages()
+    },
+    toggleMic: function() {
+      this.store.micOn = !this.store.micOn
     }
   },
   computed: {
@@ -34,7 +41,8 @@ export default {
   </div>
   <input type="text" v-model="store.input" @keyup.enter="store.sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" />
   <div class="buttons">
-    <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">mic</span>
+    <Pulse v-show="store.micOn" :width="24" :radius1="9" :radius2="4" :step="0.05" @click="toggleMic" />
+    <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }" @click="toggleMic" v-show="!store.micOn">mic</span>
     <!-- <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }">arrow_downward</span> -->
     <span class="material-icons button" @click="close">close</span>
   </div>
