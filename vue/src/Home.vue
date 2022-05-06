@@ -2,10 +2,11 @@
 import { useMainStore } from './store'
 import Friends from './Friends.vue'
 import Chat from './Chat.vue'
+import Interim from './Interim.vue'
 import InputBar from './InputBar.vue'
 import WaitingAccept from './WaitingAccept.vue'
 export default {
-  components: { Friends, Chat, InputBar, WaitingAccept },
+  components: { Friends, Chat, InputBar, WaitingAccept, Interim },
   setup() {
     const store = useMainStore()
     return { store }
@@ -24,7 +25,8 @@ export default {
     },
     onScroll: function(e) {
       // detect scroll to bottom
-      if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+      console.log(Math.ceil(e.target.scrollTop + e.target.clientHeight), e.target.scrollHeight)
+      if (Math.ceil(e.target.scrollTop + e.target.clientHeight) >= e.target.scrollHeight) {
         this.store.atBottom = true
         this.store.autoScroll = true
       } else {
@@ -36,7 +38,7 @@ export default {
         // detect scroll to top
         setTimeout(async () => {
           if (e.target.scrollTop === 0) {
-            this.store.startLoading()
+            // this.store.startLoading()
             this.scrolling = true
             // console.log('Scrolled to top')
             this.store.scrollBehavior = 'auto'
@@ -49,21 +51,35 @@ export default {
     }
   },
   mounted: async function() {
+    setTimeout(() => {
+      // console.log('test')
+      this.store.socket.emit('interim', 'test')
+    }, 3000)
+    this.store.rightRef = this.$refs.right
     // scroll right to bottom
     this.store.scrollMessages = () => {
       if (!this.store.autoScroll) return
       // console.log('scrolling')
-      this.$refs.right.scrollTop = this.$refs.right.scrollHeight
+      this.$nextTick(() => {
+        this.$refs.right.scrollTop = this.$refs.right.scrollHeight
+      });
     }
     this.store.scrollMessagesDownSmall = (oldScrollHeight) => {
-      console.log(this.$refs.right.scrollHeight - oldScrollHeight)
+      // console.log(this.$refs.right.scrollHeight - oldScrollHeight)
       // scroll down by height of refs.right
       this.$refs.right.scrollTop = this.$refs.right.scrollHeight - oldScrollHeight
     }
-    await this.store.getFriendRequests()
+    this.store.initAtBottom = () => {
+      if (this.$refs.right.scrollHeight <= this.$refs.right.clientHeight)
+        this.store.atBottom = true
+      else
+        this.store.atBottom = false
+      // console.log('atBottom', this.store.atBottom)
+    }
     const { username } = this.$route.params
+    this.store.messagesOpenFor = username
+    await this.store.getFriendRequests()
     if (username) {
-      this.store.messagesOpenFor = username
       await this.store.getMessages()
       this.$refs.right.scrollTop = this.$refs.right.scrollHeight
     }
@@ -93,6 +109,8 @@ export default {
   <div class="messages">
     <Chat :message="message" v-for="message in store.messages" />
     <WaitingAccept v-if="waitingEnabled" />
+    <Interim direction="recipient" v-if="store.messagesOpenFor" :class="{ 'invisible': !store.rightInterim }" />
+    <Interim direction="sender" v-if="store.messagesOpenFor" :class="{ 'invisible': !store.leftInterim }" />
   </div>
 </div>
 </template>

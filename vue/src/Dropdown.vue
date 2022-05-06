@@ -87,7 +87,7 @@ export default {
 
 <template>
   <div class="dropdown" ref="dropdown">
-    <div class="item" v-for="(item, index) in items" @click="$emit('select')" :class="{ 'item-selected': index === curIndex }" :ref="'item' + index">{{ item }}</div>
+    <div class="item" v-for="(item, index) in items" @click="$emit('select', index)" :class="{ 'item-selected': index === curIndex }" :ref="'item' + index">{{ item }}</div>
   </div>
 </template>
 

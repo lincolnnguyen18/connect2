@@ -19,6 +19,7 @@ export default {
   // },
   mounted() {
     this.store.finishLoading = debounce(this.store.finishLoadingSub, 300)
+    this.store.initRecognition()
   },
   // components: {
   //   Loading

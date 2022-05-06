@@ -27,6 +27,8 @@ export default {
     },
     toggleMic: function() {
       this.store.micOn = !this.store.micOn
+      if (this.store.micOn) this.store.startRecording()
+      else this.store.stopRecording()
     }
   },
   computed: {
@@ -39,10 +41,10 @@ export default {
 
 <template>
 <div class="input-bar">
-  <div class="scroll-down" :class="{ 'invisible2': store.atBottom }">
+  <div class="scroll-down" :class="{ 'invisible2': store.atBottom }" @click="scrollDown">
     <span class="material-icons button" @click="scrollDown">arrow_downward</span>
   </div>
-  <input type="text" v-model="store.input" @keyup.enter="store.sendMessage" :class="{ 'disabled': !this.inputBarEnabled }" placeholder="Type a message..." />
+  <input type="text" v-model="store.input" @keyup.enter="store.sendMessage(store.input)" :class="{ 'disabled': !this.inputBarEnabled }" placeholder="Type a message..." />
   <div class="buttons">
     <Pulse v-show="store.micOn" :width="24" :radius1="9" :radius2="4" :step="0.05" @click="toggleMic" />
     <span class="material-symbols-outlined" :class="{ 'disabled': !this.inputBarEnabled }" @click="toggleMic" v-show="!store.micOn">mic</span>

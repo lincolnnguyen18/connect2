@@ -34,9 +34,11 @@ export const useMainStore = defineStore({
     loadingProgress: 50,
     finishLoading: null,
     requests: [],
+    rightRef: null,
     messages: [],
     scrollMessages: null,
     scrollMessagesDownSmall: null,
+    initAtBottom: null,
     messageSending: false,
     scrolling: false,
     reachedLastMessage: false,
@@ -44,6 +46,9 @@ export const useMainStore = defineStore({
     atBottom: false,
     autoScroll: true,
     micOn: false,
+    recognition: new webkitSpeechRecognition(),
+    leftInterim: "",
+    rightInterim: "",
     scrollBehavior: "smooth",
     langIndex: 12,
     langAbbrevs: ["af-ZA","id-ID","ms-MY","ca-ES","cs-CZ","de-De","en-AU","en-CA","en-IN","en-NZ","en-ZA","en-GB","en-US","es-AR","es-BO","es-CL","es-CO","es-CR","es-EC","es-SV","es-ES","es-US","es-GT","es-HN","es-MX","es-NI","es-PA","es-PY","es-PE","es-PR","es-DO","es-UY","es-VE","eu-ES","fr-FR","gl-ES","hr-HR","zu-ZA","is-IS","it-IT","it-CH","hu-HU","nl-NL","nb-NO","pl-PL","pt-BR","pt-PT","ro-RO","sk-SK","fi-FI","sv-SE","tr-TR","bg-BG","ru-RU","sr-RS","ko-KR","cmn-Hans-CN","cmn-Hans-HK","cmn-Hant-TW","yue-Hant-HK","ja-JP","la"],
@@ -59,6 +64,79 @@ export const useMainStore = defineStore({
     }
   },
   actions: {
+    startRecording() {
+      this.micOn = true
+      this.recognition.start()
+    },
+    stopRecording() {
+      this.micOn = false
+      this.recognition.stop()
+      this.leftInterim = ""
+    },
+    updateLang() {
+      let wasOn = false
+      if (this.micOn) {
+        this.stopRecording()
+        wasOn = true
+      }
+      this.recognition.lang = this.langAbbrevs[this.langIndex]
+      // console.log(`lang set to ${this.langAbbrevs[this.langIndex]}`)
+      setTimeout(() => {
+        if (wasOn) this.startRecording()
+      }, 100)
+    },
+    initRecognition() {
+      this.recognition.interimResults = true
+      this.updateLang()
+      this.recognition.onresult = (e) => {
+        if (this.autoScroll) this.scrollMessages()
+        if (!this.messagesOpenForRequest) {
+          this.stopRecording()
+          return
+        }
+        this.leftInterim = "";
+        for (let i = 0; i < e.results.length; i++) {
+          if (e.results.length > 0) {
+            if (e.results[i].isFinal) {
+              // this.messages.push({
+              //   text: e.results[i][0].transcript,
+              //   side: 'left'
+              // });
+              // this.sendFinal(e.results[i][0].transcript);
+              // console.log(`final: ${e.results[i][0].transcript}`)
+              this.sendMessage(e.results[i][0].transcript).then(() => {
+                this.leftInterim = "";
+                this.socket.emit('interim', {
+                  to: this.messagesOpenForRequest.username,
+                  interim: this.leftInterim
+                });
+              });
+              // this.sendInterim(this.leftInterim);
+            } else {
+              this.leftInterim += e.results[i][0].transcript;
+              this.socket.emit('interim', {
+                to: this.messagesOpenForRequest.username,
+                interim: this.leftInterim
+              });
+              // console.log(`interim: ${this.leftInterim}`)
+              // this.sendInterim(this.leftInterim);
+            }
+          }
+        }
+      }
+      this.recognition.onstart = () => {
+        // console.log('started');
+        this.micOn = true;
+      }
+      this.recognition.onend = () => {
+        // console.log('ended');
+        if (this.micOn)
+          this.startRecording();
+      }
+      this.recognition.onerror = (e) => {
+        // console.log(e);
+      }
+    },
     startLoading() {
       if (!this.loading) {
         if (this.noLoading) {
@@ -132,6 +210,10 @@ export const useMainStore = defineStore({
                 // console.log('new-message')
                 await this.getMoreMessages()
               });
+              this.socket.on('interim', async (interim) => {
+                console.log('interim', interim)
+                this.rightInterim = interim
+              });
             })
           }
         });
@@ -168,8 +250,7 @@ export const useMainStore = defineStore({
       this.messages = [];
       this.socket.disconnect();
     },
-    async sendMessage() {
-      let message = this.input;
+    async sendMessage(message) {
       if (message.trim().length === 0 || this.messageSending) return;
       // console.log(`Sending message: ${message}`);
       this.messageSending = true;
@@ -296,7 +377,11 @@ export const useMainStore = defineStore({
         .then(res => {
           this.finishLoading()
           this.requests = res;
-          if (!this.messagesOpenForRequest) router.push('/')
+          if (!this.messagesOpenForRequest) {
+            router.push('/')
+            this.messagesOpenFor = null;
+            this.messages = [];
+          }
         });
     },
     async getMessages() {
@@ -314,8 +399,11 @@ export const useMainStore = defineStore({
             // else console.log('MESSAGES', res);
             this.messages = res.reverse();
             this.reachedLastMessage = false
+            this.autoScroll = true;
+            this.scrollMessages()
+            this.autoScroll = false;
+            this.atBottom = true;
           });
-        this.scrollMessages()
       }
     },
     async getMoreMessages() {
@@ -334,7 +422,7 @@ export const useMainStore = defineStore({
               // else console.log('MORE MESSAGES', res);
               this.messages = this.messages.concat(res.reverse());
             });
-          this.scrollMessages()
+          await this.scrollMessages()
         }
       }
     },
@@ -364,7 +452,7 @@ export const useMainStore = defineStore({
             this.reachedLastMessage = false
           } else
             this.reachedLastMessage = true
-          this.finishLoading()
+          // this.finishLoading()
         }
       }
     }

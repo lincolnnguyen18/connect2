@@ -28,12 +28,13 @@ export default {
       this.menuOpenRequest = null
     },
     select(index) {
-      console.log('select', index)
+      // console.log('select', index)
       this.store.langIndex = index
+      this.store.updateLang()
       this.languagesOpen = false
     },
     menuSelect(request) {
-      console.log('menuSelect', request)
+      // console.log('menuSelect', request)
       if(confirm('Are you sure you want to unfriend ' + request.username + '?')) {
         this.store.deleteFriend(request.username)
       }
@@ -44,11 +45,11 @@ export default {
         this.menuOpenRequest = null
       else
         this.menuOpenRequest = request
-      console.log(this.menuOpenRequest)
+      // console.log(this.menuOpenRequest)
     },
     switchView(view) {
       this.menuOpenRequest = null
-      console.log('switchView', view)
+      // console.log('switchView', view)
       this.normalView = view === 'normal'
       this.findFriendsView = view === 'findFriends'
       this.settingsView = view === 'settings'
@@ -65,14 +66,14 @@ export default {
     doSearch: async function () {
       let users = await this.store.findFriends(this.search)
       this.lastSearch = this.search
-      console.log(users)
+      // console.log(users)
       this.findFriendsUsers = users
     },
     logout() {
       this.store.logout()
       this.$router.push('/login')
       // console router route
-      console.log(`PATH: ${this.$route.path}`)
+      // console.log(`PATH: ${this.$route.path}`)
       // console.log(this.store.loggedIn, this.store.user)
 
     },

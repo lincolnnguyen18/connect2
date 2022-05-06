@@ -34,11 +34,15 @@ import { kMaxLength } from 'buffer';
     switch (message.type) {
       case 'friend-request':
         clients[message.to] && clients[message.to].emit('friend-request');
-        console.log(`doing clients[${message.to}] && clients[${message.to}].emit('friend-request')`);
+        // console.log(`doing clients[${message.to}] && clients[${message.to}].emit('friend-request')`);
         break;
       case 'message':
         clients[message.to] && clients[message.to].emit('new-message');
-        console.log(`doing clients[${message.to}] && clients[${message.to}].emit('new-message')`);
+        // console.log(`doing clients[${message.to}] && clients[${message.to}].emit('new-message')`);
+        break;
+      case 'interim':
+        clients[message.to] && clients[message.to].emit('interim', message.interim);
+        // console.log(`doing clients[${message.to}] && clients[${message.to}].emit('interim', message.interim)`);
         break;
     }
   });
@@ -95,9 +99,9 @@ import { kMaxLength } from 'buffer';
   router.post('/is-loggedin', async (req, res) => {
     // const token = req.cookies.token;
     const { token } = req.body;
-    console.log(`Token: ${token}`);
+    // console.log(`Token: ${token}`);
     let user = await validToken(token);
-    console.log(user);
+    // console.log(user);
     res.send({ user });
   });
 
@@ -287,7 +291,7 @@ import { kMaxLength } from 'buffer';
   router.post('/send-message', isLoggedIn, async (req, res) => {
     const { username, message } = req.body;
     try {
-      await conn.query('CALL send_message(?, ?, ?)', [username, req.user.username, message]);
+      await conn.query('CALL send_message(?, ?, ?)', [req.user.username, username, message]);
       publisher.publish('main', JSON.stringify({
         type: 'message',
         to: username
@@ -301,15 +305,15 @@ import { kMaxLength } from 'buffer';
 
   app.use('/api', router);
 
-  // app.use(express.static('../vue/dist'));
-  // app.get('*', (req, res) => {
-  //   res.sendFile('index.html', { root: '../vue/dist' });
-  // });
+  app.use(express.static('../vue/dist'));
+  app.get('*', (req, res) => {
+    res.sendFile('index.html', { root: '../vue/dist' });
+  });
 
-  app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
+  // app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
 
   // setup app with socket.io
-  const port = 3001;
+  const port = 7010;
   const server = http.createServer(app);
   const io = new Server(server);
   io.on('connection', (socket) => {
@@ -326,6 +330,15 @@ import { kMaxLength } from 'buffer';
       } else {
         socket.disconnect();
       }
+    });
+    socket.on('interim', (data) => {
+      console.log(data);
+      const { to, interim } = data;
+      publisher.publish('main', JSON.stringify({
+        type: 'interim',
+        to: to,
+        interim: interim
+      }));
     });
     socket.on('disconnect', () => {
       console.log(`${socket.username} disconnected`);
