@@ -4,7 +4,7 @@ if ! screen -list | grep -q 'd12'; then
 else
   echo "killing d12"
 fi
-. /media/sda1/deployment/ports.sh
+. /mnt/sda1/deployment/ports.sh
 screen -S 'd12' -X quit
 echo "Checking if d12 still alive..."
 lsof -i:$d12

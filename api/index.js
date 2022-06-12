@@ -253,8 +253,8 @@ import { kMaxLength } from 'buffer';
     const { username, limit, offHr, offMin } = req.query;
     try {
       const [rows, fields] = await conn.query('CALL get_messages(?, ?, ?, ?, ?)' , [req.user.id, username, limit, offHr, offMin]);
-      // console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
-      // console.log(rows[0]);
+      console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      console.log(rows[0]);
       res.send(rows[0]);
     } catch (err) {
       console.log(err);
@@ -266,7 +266,7 @@ import { kMaxLength } from 'buffer';
     const { username, limit, offHr, offMin, offset } = req.query;
     try {
       const [rows, fields] = await conn.query('CALL get_messages_offset(?, ?, ?, ?, ?, ?)' , [req.user.id, username, limit, offset, offHr, offMin]);
-      // console.log(`calling get_messages(${req.user.id}, ${username}, ${limit}, ${offHr}, ${offMin})`);
+      console.log(`calling get_messages_offset(${req.user.id}, ${username}, ${limit}, ${offset}, ${offHr}, ${offMin})`);
       // console.log(rows[0]);
       res.send(rows[0]);
     } catch (err) {
@@ -347,7 +347,7 @@ import { kMaxLength } from 'buffer';
   });
   server.listen(port, () => console.log(`Listening on port ${port}`));
 
-  setInterval(() => {
-    console.log(Object.keys(clients));
-  }, 1000);
+  // setInterval(() => {
+  //   console.log(Object.keys(clients));
+  // }, 1000);
 })();

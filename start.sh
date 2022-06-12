@@ -5,7 +5,7 @@ else
   echo "starting d12"
 fi
 
-. /media/sda1/deployment/ports.sh
+. /mnt/sda1/deployment/ports.sh
 
 # Start node server
 screen -dmS 'd12'
