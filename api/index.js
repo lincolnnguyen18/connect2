@@ -310,7 +310,7 @@ import { kMaxLength } from 'buffer';
     res.sendFile('index.html', { root: '../vue/dist' });
   });
 
-  // app.use('*', createProxyMiddleware({ target: 'http://localhost:3000' }));
+  // app.use('*', createProxyMiddleware({ target: 'http://localhost:1234' }));
 
   // setup app with socket.io
   const port = 7010;
